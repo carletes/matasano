@@ -1,4 +1,4 @@
--- Convert hex to base64 and back.
+-- 1. Convert hex to base64 and back.
 --
 -- The string:
 --
