@@ -20,7 +20,9 @@ Source-Repository head
 
 Library
   Build-Depends:	base == 4.6.*,
-                        bytestring == 0.10.*
+                        bytestring == 0.10.*,
+                        base16-bytestring == 0.1.*,
+                        base64-bytestring == 1.0.*
   Exposed-Modules:	Matasano
   HS-Source-Dirs:	src
   ghc-options:		-Wall
