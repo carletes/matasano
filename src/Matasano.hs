@@ -7,6 +7,8 @@ module Matasano
       -- * Base-64 conversion functions
     , base64ToBytes
     , bytesToBase64
+      -- * Encryption functions
+    , xorEncrypt
     ) where
 
 -- Looks like the best way to handle raw byte data in Haskell is with
@@ -18,6 +20,9 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.ByteString.Base16.Lazy as B16
 import qualified Data.ByteString.Base64.Lazy as B64
+
+-- For 'xor'
+import Data.Bits
 
 -- | Return a byte string from its hex string representaion
 hexToBytes :: String -> Either String B.ByteString
@@ -41,3 +46,7 @@ base64ToBytes bs = let bs' = B64.decode $ C.pack bs in
 -- | Return the base-64 representation of a byte string
 bytesToBase64 :: B.ByteString -> String
 bytesToBase64 = C.unpack . B64.encode
+
+-- | Encrypts a byte string by xor'ing with another one
+xorEncrypt     :: B.ByteString -> B.ByteString -> B.ByteString
+xorEncrypt a b = B.pack $ zipWith (xor) (B.unpack a) (B.unpack b)

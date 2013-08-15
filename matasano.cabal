@@ -32,3 +32,9 @@ Executable set-1-1
                         matasano
   Main-Is:		problems/set-1-1.hs
   ghc-options:		-Wall
+
+Executable set-1-2
+  Build-Depends:        base == 4.6.*,
+                        matasano
+  Main-Is:		problems/set-1-2.hs
+  ghc-options:		-Wall
