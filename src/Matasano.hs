@@ -22,9 +22,9 @@ import qualified Data.ByteString.Base64.Lazy as B64
 -- | Return a byte string from its hex string representaion
 hexToBytes :: String -> Either String B.ByteString
 hexToBytes hs = let (decoded, error) = B16.decode $ C.pack hs
-                    errorStr = show error in
+                    errorStr = C.unpack error in
                 case errorStr of
-                  "\"\"" -> Right decoded
+                  "" -> Right decoded
                   otherwise -> Left $ "Invalid hex string: " ++ errorStr
 
 -- | Return the hex representation of a byte string
