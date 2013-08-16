@@ -7,6 +7,8 @@ module Matasano
       -- * Base-64 conversion functions
     , base64ToBytes
     , bytesToBase64
+      -- * ASCII conversion functions
+    , bytesToASCII
       -- * Encryption functions
     , xorEncrypt
     ) where
@@ -46,6 +48,9 @@ base64ToBytes bs = let bs' = B64.decode $ C.pack bs in
 -- | Return the base-64 representation of a byte string
 bytesToBase64 :: B.ByteString -> String
 bytesToBase64 = C.unpack . B64.encode
+
+-- | Return the ASCII encoding of a byte string
+bytesToASCII = C.unpack
 
 -- | Encrypts a byte string by xor'ing with another one
 xorEncrypt     :: B.ByteString -> B.ByteString -> B.ByteString

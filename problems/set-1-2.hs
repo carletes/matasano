@@ -17,18 +17,19 @@
 
 import qualified Matasano as M
 
-input = M.hexToBytes "1c0111001f010100061a024b53535009181c"
-key = M.hexToBytes "686974207468652062756c6c277320657965"
 expected = "746865206b696420646f6e277420706c6179"
 
-result = case input of
-           Left err -> "Bad input: " ++ err
-           Right input' -> case key of
-                             Left err -> "Bad key: " ++ err
-                             Right key' -> let encrypted = M.bytesToHex $ M.xorEncrypt input' key' in
-                                           if encrypted == expected
-                                           then "OK"
-                                                else "Error: " ++ encrypted ++ " /= " ++ expected
+encrypted = do
+  input <- M.hexToBytes "1c0111001f010100061a024b53535009181c"
+  key <- M.hexToBytes "686974207468652062756c6c277320657965"
+  return (M.xorEncrypt input key)
+
+result = case encrypted of
+           Left err -> err
+           Right bs -> let encrypted' = M.bytesToHex bs in
+                       if encrypted' == expected
+                       then "OK: " ++ M.bytesToASCII bs
+                       else "Error: " ++ encrypted' ++ " /= " ++ expected
 
 main = do
   putStrLn result
