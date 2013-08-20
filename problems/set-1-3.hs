@@ -11,11 +11,25 @@
 --- piece of English plaintext. (Character frequency is a good metric.)
 --- Evaluate each output and choose the one with the best score.
 
+import qualified Data.ByteString.Lazy as B
+import Data.Word
+import System.Environment
+
 import qualified Matasano as M
 
-result = do
+candidates = do
   input <- M.hexToBytes "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
-  return (M.frequencies input)
+  let keys = map (\w -> (w, B.replicate inputLength w)) [1, 2 .. 255] where
+          inputLength = B.length input
+  return (map (\(k, k') -> (k, M.xorEncrypt input k')) keys)
+
+englishFrequencies fname = do
+  corpus <- B.readFile fname
+  return (M.frequencies corpus)
+
+rankCandidates cs freqs = cs
 
 main = do
-  putStrLn $ show result
+  [corpusFile] <- getArgs
+  freqs <- englishFrequencies corpusFile
+  putStrLn $ show freqs

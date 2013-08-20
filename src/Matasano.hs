@@ -24,6 +24,7 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.ByteString.Base16.Lazy as B16
 import qualified Data.ByteString.Base64.Lazy as B64
+
 import qualified Data.Map as Map
 
 -- For 'xor'
@@ -60,9 +61,10 @@ xorEncrypt     :: B.ByteString -> B.ByteString -> B.ByteString
 xorEncrypt a b = B.pack $ zipWith (xor) (B.unpack a) (B.unpack b)
 
 -- | Return a 'Data.Map' of the frequences of each byte in a byte string
-frequencies    :: B.ByteString -> Map.Map Char Integer
-frequencies bs =  foldl process Map.empty (C.unpack bs) where
+frequencies :: B.ByteString -> Map.Map Char Integer
+frequencies =  foldl process Map.empty . C.unpack where
     process :: Map.Map Char Integer -> Char -> Map.Map Char Integer
     process map c = case Map.lookup c map of
                       Nothing -> Map.insert c 1 map
                       Just n  -> Map.insert c (n + 1) map
+
