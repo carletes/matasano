@@ -12,7 +12,9 @@ module Matasano
       -- * Encryption functions
     , xorEncrypt
       -- * Text analysis functions
+    , Frequencies
     , frequencies
+    , rank
     ) where
 
 -- Looks like the best way to handle raw byte data in Haskell is with
@@ -26,9 +28,8 @@ import qualified Data.ByteString.Base16.Lazy as B16
 import qualified Data.ByteString.Base64.Lazy as B64
 
 import qualified Data.Map as Map
-
--- For 'xor'
-import Data.Bits
+import Data.Bits (xor)
+import Data.Int (Int64)
 
 -- | Return a byte string from its hex string representaion
 hexToBytes :: String -> Either String B.ByteString
@@ -60,11 +61,31 @@ bytesToASCII = C.unpack
 xorEncrypt     :: B.ByteString -> B.ByteString -> B.ByteString
 xorEncrypt a b = B.pack $ zipWith (xor) (B.unpack a) (B.unpack b)
 
--- | Return a 'Data.Map' of the frequences of each byte in a byte string
-frequencies :: B.ByteString -> Map.Map Char Integer
-frequencies =  foldl process Map.empty . C.unpack where
+data Frequencies = Freqs {
+      freqs :: Map.Map Char Integer,
+      count :: Int64
+}
+
+-- | Return the frequency map of each byte in a byte string
+frequencies    :: B.ByteString -> Frequencies
+frequencies bs =  Freqs freqMap count where
+    freqMap = foldl process Map.empty (C.unpack bs)
+    count = B.length bs
     process :: Map.Map Char Integer -> Char -> Map.Map Char Integer
     process map c = case Map.lookup c map of
                       Nothing -> Map.insert c 1 map
                       Just n  -> Map.insert c (n + 1) map
 
+-- | Return the frequency of a given byte in a frequency map
+frequency     :: Char -> Frequencies -> Double
+frequency c f = case Map.lookup c (freqs f) of
+                  Nothing -> 0.0
+                  Just n  -> (fromIntegral n) / fromIntegral (count f)
+
+-- | Compute how much a byte string diverges from a frequency map.
+-- Returns 0.0 for a perfect fit, and 1.0 for a complete miss
+rank      :: B.ByteString -> Frequencies -> Double
+rank bs f = sum $ map freqDelta bsChars where
+                freqDelta c = abs (frequency c f - frequency c freqBs)
+                freqBs      = frequencies bs
+                bsChars     = Map.keys (freqs freqBs)

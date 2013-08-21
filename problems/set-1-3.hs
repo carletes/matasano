@@ -13,6 +13,7 @@
 
 import qualified Data.ByteString.Lazy as B
 import Data.Word
+import Data.List (sort)
 import System.Environment
 
 import qualified Matasano as M
@@ -27,9 +28,13 @@ englishFrequencies fname = do
   corpus <- B.readFile fname
   return (M.frequencies corpus)
 
-rankCandidates cs freqs = cs
+rankCandidates       :: [(Word8, B.ByteString)] -> M.Frequencies -> [(Double, Word8, B.ByteString)]
+rankCandidates cs f = map (\(w, bs) -> (M.rank bs f, w, bs)) cs
 
 main = do
   [corpusFile] <- getArgs
   freqs <- englishFrequencies corpusFile
-  putStrLn $ show freqs
+  let result = case candidates of
+                 Left err  -> "Error: " ++ err
+                 Right bbs -> show $ head $ sort (rankCandidates bbs freqs)
+  putStrLn result
