@@ -63,14 +63,14 @@ xorEncrypt a b = B.pack $ zipWith (xor) (B.unpack a) (B.unpack b)
 
 data Frequencies = Freqs {
       freqs :: Map.Map Char Integer,
-      count :: Int64
+      norm  :: Double
 }
 
 -- | Return the frequency map of each byte in a byte string
 frequencies    :: B.ByteString -> Frequencies
-frequencies bs =  Freqs freqMap count where
+frequencies bs =  Freqs freqMap norm where
     freqMap = foldl process Map.empty (C.unpack bs)
-    count = B.length bs
+    norm    = fromIntegral $ B.length bs
     process :: Map.Map Char Integer -> Char -> Map.Map Char Integer
     process map c = case Map.lookup c map of
                       Nothing -> Map.insert c 1 map
@@ -80,7 +80,7 @@ frequencies bs =  Freqs freqMap count where
 frequency     :: Char -> Frequencies -> Double
 frequency c f = case Map.lookup c (freqs f) of
                   Nothing -> 0.0
-                  Just n  -> (fromIntegral n) / fromIntegral (count f)
+                  Just n  -> (fromIntegral n) / norm f
 
 -- | Compute how much a byte string diverges from a frequency map.
 -- Returns 0.0 for a perfect fit, and 1.0 for a complete miss
