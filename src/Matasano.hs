@@ -29,15 +29,14 @@ import qualified Data.ByteString.Base64.Lazy as B64
 
 import qualified Data.Map as Map
 import Data.Bits (xor)
-import Data.Int (Int64)
 
 -- | Return a byte string from its hex string representaion
 hexToBytes :: String -> Either String B.ByteString
-hexToBytes hs = let (decoded, error) = B16.decode $ C.pack hs
-                    errorStr = C.unpack error in
+hexToBytes hs = let (decoded, err) = B16.decode $ C.pack hs
+                    errorStr = C.unpack err in
                 case errorStr of
                   "" -> Right decoded
-                  otherwise -> Left $ "Invalid hex string: " ++ errorStr
+                  _  -> Left $ "Invalid hex string: " ++ errorStr
 
 -- | Return the hex representation of a byte string
 bytesToHex :: B.ByteString -> String
@@ -55,6 +54,7 @@ bytesToBase64 :: B.ByteString -> String
 bytesToBase64 = C.unpack . B64.encode
 
 -- | Return the ASCII encoding of a byte string
+bytesToASCII :: B.ByteString -> String
 bytesToASCII = C.unpack
 
 -- | Encrypts a byte string by xor'ing with another one
@@ -68,13 +68,13 @@ data Frequencies = Freqs {
 
 -- | Return the frequency map of each byte in a byte string
 frequencies    :: B.ByteString -> Frequencies
-frequencies bs =  Freqs freqMap norm where
+frequencies bs =  Freqs freqMap norm' where
     freqMap = foldl process Map.empty (C.unpack bs)
-    norm    = fromIntegral $ B.length bs
+    norm'   = fromIntegral $ B.length bs
     process :: Map.Map Char Integer -> Char -> Map.Map Char Integer
-    process map c = case Map.lookup c map of
-                      Nothing -> Map.insert c 1 map
-                      Just n  -> Map.insert c (n + 1) map
+    process m c = case Map.lookup c m of
+                    Nothing -> Map.insert c 1 m
+                    Just n  -> Map.insert c (n + 1) m
 
 -- | Return the frequency of a given byte in a frequency map
 frequency     :: Char -> Frequencies -> Double
