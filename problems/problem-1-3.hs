@@ -24,16 +24,12 @@ candidates = do
           inputLength = B.length input
   return (map (\(k, k') -> (k, M.xorEncrypt input k')) keys)
 
-englishFrequencies fname = do
-  corpus <- B.readFile fname
-  return (M.frequencies corpus)
-
 rankCandidates       :: [(Word8, B.ByteString)] -> M.Frequencies -> [(Double, Word8, B.ByteString)]
 rankCandidates cs f = map (\(w, bs) -> (M.rank bs f, w, bs)) cs
 
 main = do
   [corpusFile] <- getArgs
-  freqs <- englishFrequencies corpusFile
+  freqs <- M.corpusFrequencies corpusFile
   let result = case candidates of
                  Left err  -> "Error: " ++ err
                  Right bbs -> show $ head $ sort (rankCandidates bbs freqs)

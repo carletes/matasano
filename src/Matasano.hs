@@ -13,6 +13,7 @@ module Matasano
     , xorEncrypt
       -- * Text analysis functions
     , Frequencies
+    , corpusFrequencies
     , frequencies
     , rank
     ) where
@@ -89,3 +90,9 @@ rank bs f = sum $ map freqDelta bsChars where
                 freqDelta c = abs (frequency c f - frequency c freqBs)
                 freqBs      = frequencies bs
                 bsChars     = Map.keys (freqs freqBs)
+
+-- | Return the character frequencies of a given corpus file
+corpusFrequencies       :: FilePath -> IO Frequencies
+corpusFrequencies fname =  do
+  corpus <- B.readFile fname
+  return (frequencies corpus)
