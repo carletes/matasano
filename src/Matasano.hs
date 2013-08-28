@@ -47,7 +47,7 @@ bytesToHex =  C.unpack . B16.encode
 base64ToBytes    :: String -> Either String B.ByteString
 base64ToBytes bs = let bs' = B64.decode $ C.pack bs in
                    case bs' of
-                     Left err -> Left $ "Invalid bas64 string: " ++ err
+                     Left err -> Left $ "Invalid base64 string: " ++ err
                      Right _  -> bs'
 
 -- | Return the base-64 representation of a byte string
