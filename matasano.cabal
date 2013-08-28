@@ -53,3 +53,10 @@ Executable problem-1-4
                         matasano
   Main-Is:		problems/problem-1-4.hs
   ghc-options:		-Wall
+
+Executable problem-1-5
+  Build-Depends:        base == 4.6.*,
+                        bytestring == 0.10.*,
+                        matasano
+  Main-Is:		problems/problem-1-5.hs
+  ghc-options:		-Wall
