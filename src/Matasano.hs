@@ -16,6 +16,7 @@ module Matasano
     , corpusFrequencies
     , frequencies
     , rank
+    , hammingDistance
     ) where
 
 -- Looks like the best way to handle raw byte data in Haskell is with
@@ -29,7 +30,7 @@ import qualified Data.ByteString.Base16.Lazy as B16
 import qualified Data.ByteString.Base64.Lazy as B64
 
 import qualified Data.Map as Map
-import Data.Bits (xor)
+import Data.Bits (popCount, xor)
 
 -- | Return a byte string from its hex string representaion
 hexToBytes :: String -> Either String B.ByteString
@@ -96,3 +97,7 @@ corpusFrequencies       :: FilePath -> IO Frequencies
 corpusFrequencies fname =  do
   corpus <- B.readFile fname
   return (frequencies corpus)
+
+-- | Return the number of differing bits in two byte strings
+hammingDistance :: B.ByteString -> B.ByteString -> Int
+hammingDistance bs cs = sum $ map (\(a, b) -> popCount $ xor a b) (B.zip bs cs)
