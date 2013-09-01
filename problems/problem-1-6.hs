@@ -52,8 +52,8 @@ import qualified Data.ByteString.Lazy.Char8 as C
 
 import qualified Matasano as M
 
-keySizes           :: B.ByteString -> Integer -> [(Double, Integer)]
-keySizes bs maxLen =  map process [1 .. maxLen] where
+rankedKeySizes           :: B.ByteString -> Integer -> [(Double, Integer)]
+rankedKeySizes bs maxLen =  sort $ map process [1 .. maxLen] where
     process   :: Integer -> (Double, Integer)
     process n = (dNorm, n) where
         dNorm      = (average $ distances pairs') / (fromIntegral n)
@@ -72,7 +72,6 @@ pairs []     = []
 pairs (x:xs) = (map (pair x) xs) ++ pairs xs where
     pair     :: a -> a -> (a, a)
     pair u v = (u, v)
-
 
 sample1 = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a2622632427276527" ++
           "2a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
@@ -161,7 +160,7 @@ sample2 = "HUIfTQsPAh9PE048GmllH0kcDk4TAQsHThsBFkU2AB4BSWQgVB0dQzNTTmVS" ++
 result = do
   -- encrypted <- M.hexToBytes sample1
   encrypted <- M.base64ToBytes sample2
-  return (sort $ keySizes encrypted 40)
+  return (rankedKeySizes encrypted 40)
 
 main :: IO ()
 main = do
