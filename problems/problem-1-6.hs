@@ -46,24 +46,33 @@
 --- looking histogram is the repeating-key XOR key byte for that
 --- block. Put them together and you have the key.
 
-import Data.List (sort)
+import Data.List (genericLength, sort)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C
 
 import qualified Matasano as M
 
-keySizes           :: B.ByteString -> Int -> [(Double, Int)]
+keySizes           :: B.ByteString -> Integer -> [(Double, Integer)]
 keySizes bs maxLen =  map process [1 .. maxLen] where
-    process   :: Int -> (Double, Int)
+    process   :: Integer -> (Double, Integer)
     process n = (dNorm, n) where
-        dNorm        = (fromIntegral $ M.hammingDistance blk1 blk2) / (fromIntegral n)
-        [blk1, blk2] = take 2 $ chunks n bs
+        dNorm      = (average $ distances pairs') / (fromIntegral n)
+        distances  = map (\(blk1, blk2) -> M.hammingDistance blk1 blk2)
+        pairs'     = take 10000 $ pairs $ chunks n bs
+        average xs = realToFrac (sum xs) / genericLength xs
 
-chunks      :: Int -> B.ByteString -> [B.ByteString]
+chunks      :: Integer -> B.ByteString -> [B.ByteString]
 chunks n xs = if xs == B.empty
               then []
               else first : chunks n rest where
                   (first, rest) = B.splitAt (fromIntegral n) xs
+
+pairs        :: [a] -> [(a, a)]
+pairs []     = []
+pairs (x:xs) = (map (pair x) xs) ++ pairs xs where
+    pair     :: a -> a -> (a, a)
+    pair u v = (u, v)
+
 
 sample1 = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a2622632427276527" ++
           "2a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
@@ -156,4 +165,4 @@ result = do
 
 main :: IO ()
 main = do
-  putStrLn "Not yet"
+  putStrLn $ show result
