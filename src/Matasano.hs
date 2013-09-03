@@ -17,6 +17,9 @@ module Matasano
     , frequencies
     , rank
     , hammingDistance
+      -- * Cryptanalysis functions
+    , RankedKey(..)
+    , guessXorKey
     ) where
 
 -- Looks like the best way to handle raw byte data in Haskell is with
@@ -31,6 +34,7 @@ import qualified Data.ByteString.Base64.Lazy as B64
 
 import qualified Data.Map as Map
 import Data.Bits (popCount, xor)
+import Data.Word
 
 -- | Return a byte string from its hex string representaion
 hexToBytes :: String -> Either String B.ByteString
@@ -97,6 +101,22 @@ corpusFrequencies       :: FilePath -> IO Frequencies
 corpusFrequencies fname =  do
   corpus <- B.readFile fname
   return (frequencies corpus)
+
+data RankedKey = RankedKey {
+      key       :: Word8,
+      rnk       :: Double,
+      decrypted :: B.ByteString
+} deriving (Show)
+
+-- | Guess the single-byte XOR key used to encrypt the given byte string.
+guessXorKey :: B.ByteString -> Frequencies -> Double -> [RankedKey]
+guessXorKey bs f t = filter (\k -> rnk k < t) candidates where
+    candidates = map go [1 .. 225]
+    go   :: Word8 -> RankedKey
+    go k =  RankedKey k r d where
+        r   = rank d f
+        d   = xorEncrypt bs (B.replicate len k)
+        len = B.length bs
 
 -- | Return the number of differing bits in two byte strings
 hammingDistance :: B.ByteString -> B.ByteString -> Int
