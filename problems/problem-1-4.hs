@@ -7,30 +7,30 @@
 --- has been encrypted by single-character XOR. Find it. (Your code from
 --- #3 should help.)
 
-import System.Environment
+import Control.Monad (sequence)
+import System.Environment (getArgs)
+import System.Exit
 import qualified Data.ByteString.Lazy as B
 
 import qualified Matasano as M
 
-getStrings       :: FilePath -> IO [Either String B.ByteString]
+getStrings       :: FilePath -> IO (Either String [B.ByteString])
 getStrings fname = do
   body <- readFile fname
-  return (map M.hexToBytes (lines body))
+  return (sequence $ map M.hexToBytes (lines body))
 
-candidates         :: [Either String B.ByteString] -> M.Frequencies -> Double -> [Either String [M.RankedKey]]
-candidates bbs f r = map process bbs where
-    process    :: Either String B.ByteString -> Either String [M.RankedKey]
-    process bs = case bs of
-                   Left err  -> Left err
-                   Right val -> Right (M.guessXorKey val f r)
+candidates         :: [B.ByteString] -> M.Frequencies -> Double -> [M.RankedKey]
+candidates bbs f r = concatMap (\bs -> M.guessXorKey bs f r) bbs
+
 main :: IO ()
 main = do
   [dataFile, corpusFile] <- getArgs
   freqs <- M.corpusFrequencies corpusFile
   input <- getStrings dataFile
-  let probable  = filter nonEmpty $ candidates input freqs threshold
-      threshold = 0.5
-      nonEmpty                :: Either String [M.RankedKey] -> Bool
-      nonEmpty (Right (x:xs)) = True
-      nonEmpty _              = False
-  putStrLn $ show probable
+  case input of
+    Left err -> do
+               putStrLn $ "Error: " ++ err
+               exitWith $ ExitFailure 1
+    Right input' -> do
+               let result = candidates input' freqs 0.5
+               putStrLn $ show result
