@@ -9,10 +9,11 @@
 
 import Control.Monad (sequence)
 import System.Environment (getArgs)
-import System.Exit
+import System.Exit (exitWith, ExitCode(..))
 import qualified Data.ByteString.Lazy as B
 
 import qualified Matasano as M
+import Matasano.Utils (usage)
 
 getStrings       :: FilePath -> IO (Either String [B.ByteString])
 getStrings fname = do
@@ -24,13 +25,16 @@ candidates bbs f r = concatMap (\bs -> M.guessXorKey bs f r) bbs
 
 main :: IO ()
 main = do
-  [dataFile, corpusFile] <- getArgs
-  freqs <- M.corpusFrequencies corpusFile
-  input <- getStrings dataFile
-  case input of
-    Left err -> do
-               putStrLn $ "Error: " ++ err
-               exitWith $ ExitFailure 1
-    Right input' -> do
-               let result = candidates input' freqs 0.5
-               putStrLn $ show result
+  argv <- getArgs
+  case argv of
+    [dataFile, corpusFile] -> do
+              freqs <- M.corpusFrequencies corpusFile
+              input <- getStrings dataFile
+              case input of
+                Left err -> do
+                           putStrLn $ "Error: " ++ err
+                           exitWith $ ExitFailure 1
+                Right input' -> do
+                                let result = candidates input' freqs 0.5
+                                putStrLn $ show result
+    _ -> usage "<data file> <corpus file>"

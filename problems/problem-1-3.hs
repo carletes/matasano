@@ -14,9 +14,10 @@
 import qualified Data.ByteString.Lazy as B
 import Data.Word
 import Data.List (sort)
-import System.Environment
+import System.Environment (getArgs)
 
 import qualified Matasano as M
+import Matasano.Utils (usage)
 
 candidates = do
   input <- M.hexToBytes "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
@@ -28,9 +29,12 @@ rankCandidates       :: [(Word8, B.ByteString)] -> M.Frequencies -> [(Double, Wo
 rankCandidates cs f = map (\(w, bs) -> (M.rank bs f, w, bs)) cs
 
 main = do
-  [corpusFile] <- getArgs
-  freqs <- M.corpusFrequencies corpusFile
-  let result = case candidates of
-                 Left err  -> "Error: " ++ err
-                 Right bbs -> show $ head $ sort (rankCandidates bbs freqs)
-  putStrLn result
+  argv <- getArgs
+  case argv of
+    [corpus] -> do
+              freqs <- M.corpusFrequencies corpus
+              let result = case candidates of
+                             Left err  -> "Error: " ++ err
+                             Right bbs -> show $ head $ sort (rankCandidates bbs freqs)
+              putStrLn result
+    _ -> usage "<corpus file>"

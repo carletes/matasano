@@ -19,12 +19,13 @@ Source-Repository head
   SubDir:   matasano
 
 Library
-  Build-Depends:	base == 4.6.*,
+  Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         base16-bytestring == 0.1.*,
                         base64-bytestring == 1.0.*,
                         containers == 0.5.*
-  Exposed-Modules:	Matasano
+  Exposed-Modules:      Matasano,
+                        Matasano.Utils
   HS-Source-Dirs:	src
   ghc-options:		-Wall -O2
 
