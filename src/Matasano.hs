@@ -23,7 +23,7 @@ module Matasano
     , hammingDistance
 
       -- * Cryptanalysis functions
-    , RankedKey
+    , RankedKey(key)
     , guessXorKey
     ) where
 
