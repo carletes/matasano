@@ -69,7 +69,6 @@ Executable problem-1-6
   Main-Is:		problems/problem-1-6.hs
   ghc-options:		-Wall -O2
 
-
 Executable problem-1-7
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
@@ -77,4 +76,13 @@ Executable problem-1-7
                         crypto-api == 0.12.*,
                         matasano
   Main-Is:		problems/problem-1-7.hs
+  ghc-options:		-Wall -O2
+
+Executable problem-1-8
+  Build-Depends:        base == 4.6.*,
+                        bytestring == 0.10.*,
+                        cipher-aes == 0.2.*,
+                        crypto-api == 0.12.*,
+                        matasano
+  Main-Is:		problems/problem-1-8.hs
   ghc-options:		-Wall -O2
