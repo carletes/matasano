@@ -12,6 +12,9 @@ module Matasano
       -- * ASCII conversion functions
     , bytesToASCII
 
+      -- * Operations on byte strings
+    , chunks
+
       -- * Encryption functions
     , xorEncrypt
 
@@ -137,3 +140,10 @@ guessXorKey bs f t = sort $ filter (\k -> rnk k < t) candidates where
 -- | Return the number of differing bits in two byte strings.
 hammingDistance :: B.ByteString -> B.ByteString -> Int
 hammingDistance bs cs = sum $ map (\(a, b) -> popCount $ xor a b) (B.zip bs cs)
+
+-- | Splits a byte string in chunks of a given length.
+chunks      :: Integer -> B.ByteString -> [B.ByteString]
+chunks n bs = if bs == B.empty
+              then []
+              else first : chunks n rest where
+                  (first, rest) = B.splitAt (fromIntegral n) bs

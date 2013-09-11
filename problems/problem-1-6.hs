@@ -61,14 +61,8 @@ rankedKeySizes bs maxLen =  sort $ map process [1 .. maxLen] where
     process n = (dNorm, n) where
         dNorm      = (average $ distances pairs') / (fromIntegral n)
         distances  = map (\(blk1, blk2) -> M.hammingDistance blk1 blk2)
-        pairs'     = take 10000 $ pairs $ chunks n bs
+        pairs'     = take 10000 $ pairs $ M.chunks n bs
         average xs = realToFrac (sum xs) / genericLength xs
-
-chunks      :: Integer -> B.ByteString -> [B.ByteString]
-chunks n xs = if xs == B.empty
-              then []
-              else first : chunks n rest where
-                  (first, rest) = B.splitAt (fromIntegral n) xs
 
 pairs        :: [a] -> [(a, a)]
 pairs []     = []
@@ -86,7 +80,7 @@ buildKey bs freqs keySize = do
                          [] -> Nothing
                          xs -> Just (head xs)
         bss'         :: [B.ByteString]
-        bss'         = B.transpose $ take (fromIntegral keySize) $ chunks keySize bs
+        bss'         = B.transpose $ take (fromIntegral keySize) $ M.chunks keySize bs
 
 showResult :: B.ByteString -> B.ByteString -> IO ()
 showResult input key = do
