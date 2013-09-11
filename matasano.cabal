@@ -81,8 +81,7 @@ Executable problem-1-7
 Executable problem-1-8
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
-                        cipher-aes == 0.2.*,
-                        crypto-api == 0.12.*,
+                        containers == 0.5.*,
                         matasano
   Main-Is:		problems/problem-1-8.hs
   ghc-options:		-Wall -O2
