@@ -38,6 +38,7 @@ import qualified Data.ByteString.Base16.Lazy as B16
 import qualified Data.ByteString.Base64.Lazy as B64
 import qualified Data.Map as Map
 import Data.Bits (popCount, xor)
+import Data.List (sort)
 import Data.Word (Word8)
 
 -- | Return a byte string from its hex string representation.
@@ -112,15 +113,20 @@ data RankedKey = RankedKey
     { key       :: Word8         -- ^ The key
     , rnk       :: Double        -- ^ The rank of this key
     , decrypted :: B.ByteString  -- ^ The byte string decrypted with this key
-} deriving (Show)
+} deriving (Show, Eq)
+
+instance Ord RankedKey where
+    compare k1 k2 = compare (rnk k1) (rnk k2)
 
 -- | Guess the single-byte XOR key used to encrypt the given byte string.
 --
 -- Given a byte string, a frequencies map and a threshold, returns a list of
 -- ranked keys whose rank (for the given frequencies map) is bellow the given
--- threshold
+-- threshold.
+--
+-- The returned keys are sorted by rank (lowest first)
 guessXorKey        :: B.ByteString -> Frequencies -> Double -> [RankedKey]
-guessXorKey bs f t = filter (\k -> rnk k < t) candidates where
+guessXorKey bs f t = sort $ filter (\k -> rnk k < t) candidates where
     candidates = map go [1 .. 225]
     go   :: Word8 -> RankedKey
     go k =  RankedKey k r d where
