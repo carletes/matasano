@@ -20,7 +20,7 @@ import qualified Matasano as M
 import Matasano.Utils (usage)
 
 getStrings :: String -> Either String [B.ByteString]
-getStrings body = sequence $ take 1000 $ map M.hexToBytes (lines body)
+getStrings body = sequence $ map M.hexToBytes (lines body)
 
 type ChunkFrequencies = Map.Map B.ByteString Integer
 
@@ -29,7 +29,19 @@ chunkFreq n bs = foldl go Map.empty (M.chunks n bs) where
     go :: ChunkFrequencies -> B.ByteString -> ChunkFrequencies
     go freq chunk = case Map.lookup chunk freq of
                       Nothing -> Map.insert chunk 1 freq
-                      Just n  -> Map.insert chunk (n + 1) freq
+                      Just n' -> Map.insert chunk (n' + 1) freq
+
+candidate      :: Integer -> B.ByteString -> Maybe (String, ChunkFrequencies)
+candidate n bs = let freq = Map.filter (> 1) (chunkFreq n bs) in
+                 if Map.null freq
+                 then Nothing
+                 else Just (M.bytesToHex bs, freq)
+
+printCandidate                   :: Maybe (String, ChunkFrequencies) -> IO ()
+printCandidate Nothing           = putStrLn "(Nothing)"
+printCandidate (Just (bs, freq)) =  do
+  putStrLn $ "Candidate: " ++ bs
+  putStrLn $ "Blocks:    " ++ (show freq)
 
 main :: IO ()
 main = do
@@ -43,6 +55,14 @@ main = do
                            putStrLn $ "Malformed input: " ++ err
                            exitWith $ ExitFailure 1
                 Right input' -> do
-                           mapM_ (putStrLn . show . chunkFreq 4) input'
+                           let candidates = filter notEmpty $ map (candidate 4) input'
+                               notEmpty Nothing = False
+                               notEmpty _       = True
+                           case candidates of
+                             [] -> do
+                                  putStrLn "No candidates found"
+                                  exitWith $ ExitFailure 1
+                             cs ->
+                                 mapM_ printCandidate cs
 
     _ -> usage "<data file>"
