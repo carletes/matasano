@@ -1,17 +1,23 @@
-Name:		matasano
-Version:	0.1.0
-Synopsis:	A Haskell implementation of the Matasano Crypto Challenges
-Description:    A Haskell implementation of the Matasano Crypto Challenges
-License:    	BSD3
-License-File:	LICENSE
-Author:		Carlos Valiente
-Maintainer:	Carlos Valiente <carlos@pepelabs.net>
-Copyright:	Copyright (c) 2013, Carlos Valiente
-Category:	Data
-Stability:	Experimental
-Build-Type:	Simple
-Cabal-Version:	>= 1.8
-Tested-With:	GHC==7.6.3
+Name:               matasano
+Version:            0.1.0
+Synopsis:           A Haskell implementation of the Matasano Crypto Challenges
+Description:        A Haskell implementation of the Matasano Crypto Challenges
+License:            BSD3
+License-File:       LICENSE
+Author:             Carlos Valiente
+Maintainer:         Carlos Valiente <carlos@pepelabs.net>
+Copyright:          Copyright (c) 2013, Carlos Valiente
+Category:           Data
+Stability:          Experimental
+Build-Type:         Simple
+Cabal-Version:      >= 1.8
+Tested-With:        GHC==7.6.3
+Extra-Source-Files: README.rst
+Data-Files:         data/gist-3132713,
+                    data/gist-3132752,
+                    data/gist-3132853,
+                    data/gist-3132928,
+                    data/pg1661.txt
 
 Source-Repository head
   Type:     git
