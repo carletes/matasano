@@ -107,4 +107,12 @@ and contains the following 4-byte blocks repeated 4 times:
   * ``tL\210\131``
   * ``\213\210\214\156``
 
+
+Problem 9: Implement PKCS#7 padding
+-----------------------------------
+The program ``problems/problem-9.hs`` verifies that the byte string
+``"YELLOW SUBMARINE"``, padded to a chunk size of 20 with the function
+``Matasano.pkcs7Pad``, equals the expected value.
+
+
   .. _`Haskell Platform`: http://www.haskell.org/platform/

@@ -91,3 +91,10 @@ Executable problem-8
                         matasano
   Main-Is:		problems/problem-8.hs
   ghc-options:		-Wall -O2
+
+Executable problem-9
+  Build-Depends:        base == 4.6.*,
+                        bytestring == 0.10.*,
+                        matasano
+  Main-Is:		problems/problem-9.hs
+  ghc-options:		-Wall -O2
