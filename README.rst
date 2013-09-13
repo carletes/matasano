@@ -17,6 +17,7 @@ tarball, and run the following commands on the top-level
 source directory::
 
   $ cabal install --only-dependencies
+  $ cabal configure
   $ cabal build
 
 Executables will be written to the directories ``dist/build/problem-*``.
