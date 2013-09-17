@@ -29,6 +29,7 @@ Library
                         bytestring == 0.10.*,
                         base16-bytestring == 0.1.*,
                         base64-bytestring == 1.0.*,
+                        cipher-aes == 0.2.*,
                         containers == 0.5.*
   Exposed-Modules:      Matasano,
                         Matasano.Utils
@@ -78,8 +79,6 @@ Executable problem-6
 Executable problem-7
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
-                        cipher-aes == 0.2.*,
-                        crypto-api == 0.12.*,
                         matasano
   Main-Is:		problems/problem-7.hs
   ghc-options:		-Wall -O2

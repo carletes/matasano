@@ -18,6 +18,8 @@ module Matasano
 
       -- * Encryption functions
     , xorEncrypt
+    , decryptAES_ECB
+    , encryptAES_ECB
 
       -- * Text analysis functions
     , Frequencies
@@ -41,6 +43,7 @@ import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.ByteString.Base16.Lazy as B16
 import qualified Data.ByteString.Base64.Lazy as B64
 import qualified Data.Map as Map
+import Crypto.Cipher.AES (decryptECB, encryptECB, initAES)
 import Data.Bits (popCount, xor)
 import Data.List (sort)
 import Data.Word (Word8)
@@ -161,3 +164,15 @@ pkcs7Pad k bs = if not (k > 0 && k <= 256)
                     pad = B.replicate p (fromIntegral p)
                     p   = k' - (B.length bs `mod` k')
                     k'  = fromIntegral k
+
+-- | Decrypts a byte string with the given key using AES in ECB mode.
+decryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString
+decryptAES_ECB k bs = B.fromStrict $ decryptECB k' bs' where
+    k' = initAES $ B.toStrict k
+    bs' = B.toStrict bs
+
+-- | Encrypts a byte string with the given key using AES in ECB mode.
+encryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString
+encryptAES_ECB k bs = B.fromStrict $ encryptECB k' bs' where
+    k' = initAES $ B.toStrict k
+    bs' = B.toStrict bs

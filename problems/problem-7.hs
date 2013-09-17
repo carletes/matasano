@@ -16,12 +16,11 @@
 --
 -- Use OpenSSL::Cipher and give it AES-128-ECB as the cipher.
 
-import Crypto.Cipher.AES (decryptECB, encryptECB, initAES)
 import System.Environment (getArgs)
 import System.Exit (exitWith, ExitCode(..))
 
 import qualified Data.ByteString.Lazy as B
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Lazy.Char8 as C
 
 import qualified Matasano as M
 import Matasano.Utils
@@ -37,11 +36,10 @@ main = do
                             putStrLn $ "Malformed input: " ++ err
                             exitWith $ ExitFailure 1
                 Right input' -> do
-                    let input2 = B.toStrict input'
-                        key = initAES $ C.pack "YELLOW SUBMARINE"
-                        dec = decryptECB key input2
-                        enc = encryptECB key dec
-                    if enc /= input2
+                    let key = C.pack "YELLOW SUBMARINE"
+                        dec = M.decryptAES_ECB key input'
+                        enc = M.encryptAES_ECB key dec
+                    if enc /= input'
                        then do
                          putStrLn $ "Error: encrypt(decrypt(input)) /= input"
                          exitWith $ ExitFailure 1
