@@ -115,4 +115,21 @@ The program ``problems/problem-9.hs`` verifies that the byte string
 ``Matasano.pkcs7Pad``, equals the expected value.
 
 
+Problem 10: Implement CBC Mode
+------------------------------
+The program ``problems/problem-10`` decrypts the ciphertext from
+``data/gist-3132976`` using the function ``M.decryptAES_CBC``, and
+verifies the decryption by encrypting it with ``N.encryptAES_CBC`` and
+comparing the resulting cyphertext to the original input.
+
+The first lines of the decrypted text read:
+
+    I'm back and I'm ringin' the bell
+    A rockin' on the mike while the fly girls yell
+    In ecstasy in the back of me
+    Well that's my DJ Deshay cuttin' all them Z's
+    Hittin' hard and the girlies goin' crazy
+    Vanilla's on the mike, man I'm not lazy.
+
+
   .. _`Haskell Platform`: http://www.haskell.org/platform/

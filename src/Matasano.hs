@@ -18,6 +18,8 @@ module Matasano
 
       -- * Encryption functions
     , xorEncrypt
+    , decryptAES_CBC
+    , encryptAES_CBC
     , decryptAES_ECB
     , encryptAES_ECB
 
@@ -171,8 +173,22 @@ decryptAES_ECB k bs = B.fromStrict $ decryptECB k' bs' where
     k' = initAES $ B.toStrict k
     bs' = B.toStrict bs
 
--- | Encrypts a byte string with the given key using AES in ECB mode.
+-- | Encrypts a byte string with the given keyV using AES in ECB mode.
 encryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString
 encryptAES_ECB k bs = B.fromStrict $ encryptECB k' bs' where
     k' = initAES $ B.toStrict k
     bs' = B.toStrict bs
+
+-- | Decrypts a byte string with the given key and IV using AES in CBC mode.
+decryptAES_CBC         :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
+decryptAES_CBC k iv bs = B.concat $ zipWith go blocks (iv : blocks) where
+    blocks      = chunks (fromIntegral $ B.length k) bs
+    go          :: B.ByteString -> B.ByteString -> B.ByteString
+    go blk prev = B.pack $ B.zipWith xor (decryptAES_ECB k blk) prev
+
+-- | Encrypts a byte string with the given key and IV using AES in CBC mode.
+encryptAES_CBC         :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
+encryptAES_CBC k iv bs = (B.concat . drop 1 . reverse) (foldl go [iv] blocks) where
+    blocks     = chunks (fromIntegral $ B.length k) bs
+    go         :: [B.ByteString] -> B.ByteString -> [B.ByteString]
+    go acc blk = (encryptAES_ECB k (B.pack $ B.zipWith xor blk (head acc))) : acc
