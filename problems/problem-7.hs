@@ -43,6 +43,6 @@ main = do
                        then do
                          putStrLn $ "Error: encrypt(decrypt(input)) /= input"
                          exitWith $ ExitFailure 1
-                      else
-                          putStrLn $ C.unpack dec
+                       else
+                         putStrLn $ C.unpack dec
     _ -> usage "<data file>"
