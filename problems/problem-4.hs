@@ -7,7 +7,6 @@
 --- has been encrypted by single-character XOR. Find it. (Your code from
 --- #3 should help.)
 
-import Control.Monad (sequence)
 import System.Environment (getArgs)
 import System.Exit (exitWith, ExitCode(..))
 import qualified Data.ByteString.Lazy as B
@@ -18,7 +17,7 @@ import Matasano.Utils (usage)
 getStrings       :: FilePath -> IO (Either String [B.ByteString])
 getStrings fname = do
   body <- readFile fname
-  return (sequence $ map M.hexToBytes (lines body))
+  return (mapM M.hexToBytes (lines body))
 
 candidates         :: [B.ByteString] -> M.Frequencies -> Double -> [M.RankedKey]
 candidates bbs f r = concatMap (\bs -> M.guessXorKey bs f r) bbs
@@ -36,5 +35,5 @@ main = do
                            exitWith $ ExitFailure 1
                 Right input' -> do
                                 let result = candidates input' freqs 0.5
-                                putStrLn $ show result
+                                print result
     _ -> usage "<data file> <corpus file>"

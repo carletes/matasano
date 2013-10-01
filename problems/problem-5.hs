@@ -39,7 +39,7 @@ result = M.bytesToHex $ M.xorEncrypt (C.pack input) key' where
 main :: IO ()
 main =
     if expected == result
-    then do
+    then
       putStrLn "OK"
-    else do
+    else
       putStrLn $ "Error: " ++ result ++ " /= " ++ expected

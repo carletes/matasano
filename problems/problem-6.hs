@@ -59,20 +59,20 @@ rankedKeySizes           :: B.ByteString -> Integer -> [(Double, Integer)]
 rankedKeySizes bs maxLen =  sort $ map process [1 .. maxLen] where
     process   :: Integer -> (Double, Integer)
     process n = (dNorm, n) where
-        dNorm      = (average $ distances pairs') / (fromIntegral n)
+        dNorm      = average (distances pairs') / fromIntegral n
         distances  = map (\(blk1, blk2) -> M.hammingDistance blk1 blk2)
         pairs'     = take 10000 $ pairs $ M.chunks n bs
         average xs = realToFrac (sum xs) / genericLength xs
 
 pairs        :: [a] -> [(a, a)]
 pairs []     = []
-pairs (x:xs) = (map (pair x) xs) ++ pairs xs where
+pairs (x:xs) = map (pair x) xs ++ pairs xs where
     pair     :: a -> a -> (a, a)
     pair u v = (u, v)
 
 buildKey :: B.ByteString -> M.Frequencies -> Integer -> Maybe B.ByteString
 buildKey bs freqs keySize = do
-  keyBytes <- sequence $ map guessKey bss'
+  keyBytes <- mapM guessKey bss'
   return (B.pack $ map M.key keyBytes)
       where
         guessKey     :: B.ByteString -> Maybe M.RankedKey
@@ -95,13 +95,13 @@ main = do
     [dataFile, corpus] -> do
               freqs <- M.corpusFrequencies corpus
               input <- readFile dataFile
-              case ((M.base64ToBytes . concat . lines) input) of
+              case (M.base64ToBytes . concat . lines) input of
                 Left err -> do
                             putStrLn $ "Error: " ++ err
                             exitWith $ ExitFailure 1
                 Right input' -> do
                                 let keySizes = rankedKeySizes input' 40
-                                    keys = sequence $ map (buildKey input' freqs . snd) keySizes
+                                    keys = mapM (buildKey input' freqs . snd) keySizes
                                 case keys of
                                   Nothing -> putStrLn "No key found"
                                   Just keys' -> showResult input' (head keys')

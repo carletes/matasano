@@ -36,7 +36,7 @@ main = do
   case argv of
     [dataFile] -> do
               input <- readFile dataFile
-              case ((M.base64ToBytes . concat . lines) input) of
+              case (M.base64ToBytes . concat . lines) input of
                 Left err -> do
                     putStrLn $ "Malformed input: " ++ err
                     exitWith $ ExitFailure 1
@@ -47,8 +47,8 @@ main = do
                         enc = M.encryptAES_CBC key iv dec
                     if enc /= input'
                        then do
-                         putStrLn $ "Error: encrypt(decrypt(input)) /= input"
-                         putStrLn $ "encrypt(decrypt(input)): " ++ (show enc)
+                         putStrLn "Error: encrypt(decrypt(input)) /= input"
+                         putStrLn $ "encrypt(decrypt(input)): " ++ show enc
                          exitWith $ ExitFailure 1
                        else
                          putStrLn $ M.bytesToASCII dec

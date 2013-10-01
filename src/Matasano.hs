@@ -79,7 +79,7 @@ bytesToASCII = C.unpack
 
 -- | Encrypts a byte string by xor'ing with another one.
 xorEncrypt     :: B.ByteString -> B.ByteString -> B.ByteString
-xorEncrypt a b = B.pack $ zipWith (xor) (B.unpack a) (B.unpack b)
+xorEncrypt a b = B.pack $ zipWith xor (B.unpack a) (B.unpack b)
 
 -- | A structure describing the frequencies of bytes in a byte string.
 data Frequencies = Freqs
@@ -101,7 +101,7 @@ frequencies bs =  Freqs freqMap norm' where
 frequency     :: Char -> Frequencies -> Double
 frequency c f = case Map.lookup c (freqs f) of
                   Nothing -> 0.0
-                  Just n  -> (fromIntegral n) / norm f
+                  Just n  -> fromIntegral n / norm f
 
 -- | Compute how much a byte string diverges from a frequency map.
 -- Returns 0.0 for a perfect fit, and 1.0 for a complete miss
@@ -160,7 +160,7 @@ chunks n bs = if bs == B.empty
 -- Raises an error if the given chunk length @k@ is not in the range @[1, 256]@
 pkcs7Pad      :: Integer -> B.ByteString -> B.ByteString
 pkcs7Pad k bs = if not (k > 0 && k <= 256)
-                then error $ "pkcs7Pad: Chunk length " ++ (show k) ++
+                then error $ "pkcs7Pad: Chunk length " ++ show k ++
                          " not the range [1, 256]"
                 else B.append bs pad where
                     pad = B.replicate p (fromIntegral p)
@@ -191,4 +191,4 @@ encryptAES_CBC         :: B.ByteString -> B.ByteString -> B.ByteString -> B.Byte
 encryptAES_CBC k iv bs = (B.concat . drop 1 . reverse) (foldl go [iv] blocks) where
     blocks     = chunks (fromIntegral $ B.length k) bs
     go         :: [B.ByteString] -> B.ByteString -> [B.ByteString]
-    go acc blk = (encryptAES_ECB k (B.pack $ B.zipWith xor blk (head acc))) : acc
+    go acc blk = encryptAES_ECB k (B.pack $ B.zipWith xor blk (head acc)) : acc

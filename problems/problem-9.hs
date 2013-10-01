@@ -24,7 +24,7 @@ main = do
       expected = B.append input (B.replicate 4 0x04)
   if padded /= expected
      then do
-          putStrLn $ "Error: " ++ (show padded) ++ " /= " ++ (show expected)
+          putStrLn $ "Error: " ++ show padded ++ " /= " ++ show expected
           exitWith $ ExitFailure 1
      else
          putStrLn "OK"

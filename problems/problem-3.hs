@@ -35,6 +35,6 @@ main = do
               freqs <- M.corpusFrequencies corpus
               let result = case candidates of
                              Left err  -> "Error: " ++ err
-                             Right bbs -> show $ head $ sort (rankCandidates bbs freqs)
+                             Right bbs -> show $ minimum (rankCandidates bbs freqs)
               putStrLn result
     _ -> usage "<corpus file>"

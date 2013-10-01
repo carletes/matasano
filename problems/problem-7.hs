@@ -19,7 +19,6 @@
 import System.Environment (getArgs)
 import System.Exit (exitWith, ExitCode(..))
 
-import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C
 
 import qualified Matasano as M
@@ -31,7 +30,7 @@ main = do
   case argv of
     [dataFile] -> do
               input <- readFile dataFile
-              case ((M.base64ToBytes . concat . lines) input) of
+              case (M.base64ToBytes . concat . lines) input of
                 Left err -> do
                             putStrLn $ "Malformed input: " ++ err
                             exitWith $ ExitFailure 1
@@ -41,7 +40,7 @@ main = do
                         enc = M.encryptAES_ECB key dec
                     if enc /= input'
                        then do
-                         putStrLn $ "Error: encrypt(decrypt(input)) /= input"
+                         putStrLn "Error: encrypt(decrypt(input)) /= input"
                          exitWith $ ExitFailure 1
                        else
                          putStrLn $ C.unpack dec

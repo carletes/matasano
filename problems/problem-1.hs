@@ -28,5 +28,5 @@ result = case M.hexToBytes source of
                                           then "OK"
                                           else "Nope: " ++ enc1 ++ " /= " ++ source
 
-main = do
+main =
   putStrLn result

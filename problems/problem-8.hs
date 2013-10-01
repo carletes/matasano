@@ -20,7 +20,7 @@ import qualified Matasano as M
 import Matasano.Utils (usage)
 
 getStrings :: String -> Either String [B.ByteString]
-getStrings body = sequence $ map M.hexToBytes (lines body)
+getStrings body = mapM M.hexToBytes (lines body)
 
 type ChunkFrequencies = Map.Map B.ByteString Integer
 
@@ -41,7 +41,7 @@ printCandidate                   :: Maybe (String, ChunkFrequencies) -> IO ()
 printCandidate Nothing           = putStrLn "(Nothing)"
 printCandidate (Just (bs, freq)) =  do
   putStrLn $ "Candidate: " ++ bs
-  putStrLn $ "Blocks:    " ++ (show freq)
+  putStrLn $ "Blocks:    " ++ show freq
 
 main :: IO ()
 main = do

@@ -31,5 +31,5 @@ result = case encrypted of
                        then "OK: " ++ M.bytesToASCII bs
                        else "Error: " ++ encrypted' ++ " /= " ++ expected
 
-main = do
+main =
   putStrLn result
