@@ -95,7 +95,7 @@ with the given key, and prints the plaintext
 
 Problem 8: Detecting ECB
 ------------------------
-The program ``problems/problem-7.hs`` scans all hex-encoded
+The program ``problems/problem-8.hs`` scans all hex-encoded
 ciphertexts from ``data/gist-3132928``, and prints the only one which
 contains repeated 16-byte chunks.
 
