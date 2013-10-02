@@ -33,6 +33,7 @@ module Matasano
       -- * Cryptanalysis functions
     , RankedKey(key)
     , guessXorKey
+    , encryptionOracle
     ) where
 
 -- Looks like the best way to handle raw byte data in Haskell is with
@@ -49,6 +50,7 @@ import Crypto.Cipher.AES (decryptECB, encryptECB, initAES)
 import Data.Bits (popCount, xor)
 import Data.List (sort)
 import Data.Word (Word8)
+import System.Random (newStdGen, random, randomR, randoms)
 
 -- | Return a byte string from its hex string representation.
 hexToBytes :: String -> Either String B.ByteString
@@ -192,3 +194,49 @@ encryptAES_CBC k iv bs = (B.concat . drop 1 . reverse) (foldl go [iv] blocks) wh
     blocks     = chunks (fromIntegral $ B.length k) bs
     go         :: [B.ByteString] -> B.ByteString -> [B.ByteString]
     go acc blk = encryptAES_ECB k (B.pack $ B.zipWith xor blk (head acc)) : acc
+
+-- | Generates a random byte string of the given length.
+randomBytes   :: Int -> IO B.ByteString
+randomBytes n = do
+  gen <- newStdGen
+  return (B.pack $ take n (randoms gen))
+
+-- | Generates a random AES-128 key.
+randomAESKey :: IO B.ByteString
+randomAESKey = randomBytes 16
+
+-- | Generates a random AES-128 IV.
+randomIV :: IO B.ByteString
+randomIV = randomBytes 16
+
+-- | Generates a random padding length.
+randomPadding :: Int -> Int -> IO Int
+randomPadding a b = do
+  gen <- newStdGen
+  return (fst $ randomR (a, b) gen)
+
+-- | Generates a random bool.
+randomBool :: IO Bool
+randomBool = do
+  gen <- newStdGen
+  return (fst $ random gen)
+
+-- | Oracle function for AES-128 encryption.
+--
+-- Pads the given plaintext with a random prefix and suffix of random
+-- lengths between 5 and 10, randomly chooses an AES-128 encryption mode
+-- (ECB or CBC) and a key, and encrypts the padded plaintext.
+encryptionOracle :: B.ByteString -> IO B.ByteString
+encryptionOracle bs = do
+  k <- randomAESKey
+  p <- randomPadding 5 10
+  prefix <- randomBytes p
+  s <- randomPadding 5 10
+  suffix <- randomBytes s
+  iv <- randomIV
+  cbc <- randomBool
+  let encrypted =
+          if cbc
+          then encryptAES_CBC k iv bs
+          else encryptAES_ECB k bs
+  return (B.concat [prefix, encrypted, suffix])

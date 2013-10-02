@@ -30,7 +30,8 @@ Library
                         base16-bytestring == 0.1.*,
                         base64-bytestring == 1.0.*,
                         cipher-aes == 0.2.*,
-                        containers == 0.5.*
+                        containers == 0.5.*,
+                        random == 1.0.*
   Exposed-Modules:      Matasano,
                         Matasano.Utils
   HS-Source-Dirs:	src
