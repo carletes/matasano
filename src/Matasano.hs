@@ -209,11 +209,11 @@ randomAESKey = randomBytes 16
 randomIV :: IO B.ByteString
 randomIV = randomBytes 16
 
--- | Generates a random padding length.
-randomPadding :: Int -> Int -> IO Int
+-- | Generates a random padding of variable length.
+randomPadding     :: Int -> Int -> IO B.ByteString
 randomPadding a b = do
   gen <- newStdGen
-  return (fst $ randomR (a, b) gen)
+  randomBytes (fst $ randomR (a, b) gen)
 
 -- | Generates a random bool.
 randomBool :: IO Bool
@@ -226,17 +226,15 @@ randomBool = do
 -- Pads the given plaintext with a random prefix and suffix of random
 -- lengths between 5 and 10, randomly chooses an AES-128 encryption mode
 -- (ECB or CBC) and a key, and encrypts the padded plaintext.
-encryptionOracle :: B.ByteString -> IO B.ByteString
+encryptionOracle    :: B.ByteString -> IO B.ByteString
 encryptionOracle bs = do
   k <- randomAESKey
   p <- randomPadding 5 10
-  prefix <- randomBytes p
   s <- randomPadding 5 10
-  suffix <- randomBytes s
   iv <- randomIV
   cbc <- randomBool
   let encrypted =
           if cbc
           then encryptAES_CBC k iv bs
           else encryptAES_ECB k bs
-  return (B.concat [prefix, encrypted, suffix])
+  return (B.concat [p, encrypted, s])
