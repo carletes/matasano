@@ -22,6 +22,24 @@
 --
 -- Now detect the block cipher mode the function is using each time.
 
+import qualified Data.ByteString.Lazy as B
+
+import qualified Matasano as M
+
+generatePlaintext :: IO B.ByteString
+generatePlaintext = M.randomBytes (1024 * 16)
+
+guessECB            :: (B.ByteString, M.CipherMode) -> Either String String
+guessECB (bs, mode) = case M.detectECB 16 bs of
+                        Nothing -> if mode == M.CBC
+                                   then Right "OK"
+                                   else Left "Detected ECB, expected CBC"
+                        Just _  -> if mode == M.ECB
+                                   then Right "OK"
+                                   else Left "Detected CBC, expected ECB"
+
 main :: IO ()
-main =
-    putStrLn "Not yet"
+main = do
+    bs <- generatePlaintext
+    encrypted <- M.leakyEncryptionOracle bs
+    print $ guessECB encrypted

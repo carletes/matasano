@@ -34,6 +34,8 @@ module Matasano
     , RankedKey(key)
     , ChunkFrequencies
     , guessXorKey
+    , randomBytes
+    , CipherMode(..)
     , detectECB
     , encryptionOracle
     , leakyEncryptionOracle
