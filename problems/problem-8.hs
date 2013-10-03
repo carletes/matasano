@@ -44,7 +44,7 @@ main = do
                            putStrLn $ "Malformed input: " ++ err
                            exitWith $ ExitFailure 1
                 Right input' -> do
-                           let cs = filter notEmpty $ map (candidates 4) input'
+                           let cs = filter notEmpty $ map (candidates 16) input'
                                notEmpty Nothing = False
                                notEmpty _       = True
                            case cs of

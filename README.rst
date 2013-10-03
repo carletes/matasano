@@ -101,12 +101,9 @@ block length of 4, and prints the only one which contains repeated
 16-byte chunks.
 
 The line in question starts with ``d880619740a8a19b7840a8a31c810a[..]``,
-and contains the following 4-byte blocks repeated 4 times:
+and contains the following 16-byte block repeated 4 times:
 
-  * ``\bd\154\247``
-  * ``\r\192oO``
-  * ``tL\210\131``
-  * ``\213\210\214\156``
+  ``\bd\154\247\r\192oO\213\210\214\156tL\210\131``
 
 
 Problem 9: Implement PKCS#7 padding
