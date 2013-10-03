@@ -32,7 +32,9 @@ module Matasano
 
       -- * Cryptanalysis functions
     , RankedKey(key)
+    , ChunkFrequencies
     , guessXorKey
+    , detectECB
     , encryptionOracle
     ) where
 
@@ -220,6 +222,28 @@ randomBool :: IO Bool
 randomBool = do
   gen <- newStdGen
   return (fst $ random gen)
+
+-- | Map of all chunk frequencies of a given byte string.
+--
+-- Keys are the chunks, and values are their frequencies.
+type ChunkFrequencies = Map.Map B.ByteString Integer
+
+-- | Returns the chunk frequencies of a given length in a given byte
+-- string.
+chunkFrequencies      :: Integer -> B.ByteString -> ChunkFrequencies
+chunkFrequencies n bs = foldl go Map.empty (chunks n bs) where
+    go :: ChunkFrequencies -> B.ByteString -> ChunkFrequencies
+    go freq chunk = case Map.lookup chunk freq of
+                      Nothing -> Map.insert chunk 1 freq
+                      Just n' -> Map.insert chunk (n' + 1) freq
+
+-- | Detects whether a given byte string has been encrypted using ECB
+-- mode with the given block size.
+detectECB      :: Integer -> B.ByteString -> Maybe ChunkFrequencies
+detectECB n bs = let freq = Map.filter (> 1) (chunkFrequencies n bs) in
+                 if Map.null freq
+                 then Nothing
+                 else Just freq
 
 -- | Oracle function for AES-128 encryption.
 --

@@ -14,7 +14,6 @@ import System.Environment (getArgs)
 import System.Exit (exitWith, ExitCode(..))
 
 import qualified Data.ByteString.Lazy as B
-import qualified Data.Map as Map
 
 import qualified Matasano as M
 import Matasano.Utils (usage)
@@ -22,22 +21,12 @@ import Matasano.Utils (usage)
 getStrings :: String -> Either String [B.ByteString]
 getStrings body = mapM M.hexToBytes (lines body)
 
-type ChunkFrequencies = Map.Map B.ByteString Integer
+candidates      :: Integer -> B.ByteString -> Maybe (String, M.ChunkFrequencies)
+candidates n bs = case M.detectECB n bs of
+                    Nothing    -> Nothing
+                    Just freqs -> Just (M.bytesToHex bs, freqs)
 
-chunkFreq      :: Integer -> B.ByteString -> ChunkFrequencies
-chunkFreq n bs = foldl go Map.empty (M.chunks n bs) where
-    go :: ChunkFrequencies -> B.ByteString -> ChunkFrequencies
-    go freq chunk = case Map.lookup chunk freq of
-                      Nothing -> Map.insert chunk 1 freq
-                      Just n' -> Map.insert chunk (n' + 1) freq
-
-candidate      :: Integer -> B.ByteString -> Maybe (String, ChunkFrequencies)
-candidate n bs = let freq = Map.filter (> 1) (chunkFreq n bs) in
-                 if Map.null freq
-                 then Nothing
-                 else Just (M.bytesToHex bs, freq)
-
-printCandidate                   :: Maybe (String, ChunkFrequencies) -> IO ()
+printCandidate                   :: Maybe (String, M.ChunkFrequencies) -> IO ()
 printCandidate Nothing           = putStrLn "(Nothing)"
 printCandidate (Just (bs, freq)) =  do
   putStrLn $ "Candidate: " ++ bs
@@ -55,14 +44,14 @@ main = do
                            putStrLn $ "Malformed input: " ++ err
                            exitWith $ ExitFailure 1
                 Right input' -> do
-                           let candidates = filter notEmpty $ map (candidate 4) input'
+                           let cs = filter notEmpty $ map (candidates 4) input'
                                notEmpty Nothing = False
                                notEmpty _       = True
-                           case candidates of
+                           case cs of
                              [] -> do
                                   putStrLn "No candidates found"
                                   exitWith $ ExitFailure 1
-                             cs ->
-                                 mapM_ printCandidate cs
+                             cs' ->
+                                 mapM_ printCandidate cs'
 
     _ -> usage "<data file>"

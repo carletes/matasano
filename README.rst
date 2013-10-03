@@ -95,9 +95,10 @@ with the given key, and prints the plaintext
 
 Problem 8: Detecting ECB
 ------------------------
-The program ``problems/problem-8.hs`` scans all hex-encoded
-ciphertexts from ``data/gist-3132928``, and prints the only one which
-contains repeated 16-byte chunks.
+The program ``problems/problem-8.hs`` scans all hex-encoded ciphertexts
+from ``data/gist-3132928``, using the function ``M.detectECB`` with a
+block length of 4, and prints the only one which contains repeated
+16-byte chunks.
 
 The line in question starts with ``d880619740a8a19b7840a8a31c810a[..]``,
 and contains the following 4-byte blocks repeated 4 times:
