@@ -36,6 +36,7 @@ module Matasano
     , guessXorKey
     , detectECB
     , encryptionOracle
+    , leakyEncryptionOracle
     ) where
 
 -- Looks like the best way to handle raw byte data in Haskell is with
@@ -252,13 +253,23 @@ detectECB n bs = let freq = Map.filter (> 1) (chunkFrequencies n bs) in
 -- (ECB or CBC) and a key, and encrypts the padded plaintext.
 encryptionOracle    :: B.ByteString -> IO B.ByteString
 encryptionOracle bs = do
+  (ret, _) <- leakyEncryptionOracle bs
+  return ret
+
+data CipherMode = ECB | CBC
+                deriving (Eq, Show)
+
+-- | Version of @encryptionOracle@ that leaks the encryption mode used.
+leakyEncryptionOracle    :: B.ByteString -> IO (B.ByteString, CipherMode)
+leakyEncryptionOracle bs = do
   k <- randomAESKey
   p <- randomPadding 5 10
   s <- randomPadding 5 10
   iv <- randomIV
   cbc <- randomBool
   let encrypted =
-          if cbc
-          then encryptAES_CBC k iv bs
-          else encryptAES_ECB k bs
-  return (B.concat [p, encrypted, s])
+           if cbc
+           then encryptAES_CBC k iv bs
+           else encryptAES_ECB k bs
+      mode = if cbc then CBC else ECB
+  return (B.concat [p, encrypted, s], mode)
