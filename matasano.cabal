@@ -40,48 +40,48 @@ Library
 Executable problem-1
   Build-Depends:        base == 4.6.*,
                         matasano
-  Main-Is:		problems/problem-1.hs
+  Main-Is:		src/problem-1.hs
   ghc-options:		-Wall -O2
 
 Executable problem-2
   Build-Depends:        base == 4.6.*,
                         matasano
-  Main-Is:		problems/problem-2.hs
+  Main-Is:		src/problem-2.hs
   ghc-options:		-Wall -O2
 
 Executable problem-3
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-3.hs
+  Main-Is:		src/problem-3.hs
   ghc-options:		-Wall -O2
 
 Executable problem-4
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-4.hs
+  Main-Is:		src/problem-4.hs
   ghc-options:		-Wall -O2
 
 Executable problem-5
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-5.hs
+  Main-Is:		src/problem-5.hs
   ghc-options:		-Wall -O2
 
 Executable problem-6
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-6.hs
+  Main-Is:		src/problem-6.hs
   ghc-options:		-Wall -O2
 
 Executable problem-7
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-7.hs
+  Main-Is:		src/problem-7.hs
   ghc-options:		-Wall -O2
 
 Executable problem-8
@@ -89,26 +89,26 @@ Executable problem-8
                         bytestring == 0.10.*,
                         containers == 0.5.*,
                         matasano
-  Main-Is:		problems/problem-8.hs
+  Main-Is:		src/problem-8.hs
   ghc-options:		-Wall -O2
 
 Executable problem-9
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-9.hs
+  Main-Is:		src/problem-9.hs
   ghc-options:		-Wall -O2
 
 Executable problem-10
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-10.hs
+  Main-Is:		src/problem-10.hs
   ghc-options:		-Wall -O2
 
 Executable problem-11
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-11.hs
+  Main-Is:		src/problem-11.hs
   ghc-options:		-Wall -O2
