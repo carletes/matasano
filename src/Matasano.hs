@@ -15,6 +15,7 @@ module Matasano
       -- * Operations on byte strings
     , chunks
     , pkcs7Pad
+    , pkcs7Unpad
 
       -- * Encryption functions
     , xorEncrypt
@@ -165,15 +166,49 @@ chunks n bs = if bs == B.empty
 -- | Pad a given byte string to a multiple of given octets using the PKCS#7
 -- process (http://tools.ietf.org/html/rfc5652#section-6.3).
 --
--- Raises an error if the given chunk length @k@ is not in the range @[1, 256]@
-pkcs7Pad      :: Integer -> B.ByteString -> B.ByteString
+-- Returns an error if the given chunk length @k@ is not in the
+-- range @[1, 256]@
+pkcs7Pad      :: Integer -> B.ByteString -> Either String B.ByteString
 pkcs7Pad k bs = if not (k > 0 && k <= 256)
-                then error $ "pkcs7Pad: Chunk length " ++ show k ++
+                then Left $ "pkcs7Pad: Chunk length " ++ show k ++
                          " not the range [1, 256]"
-                else B.append bs pad where
+                else Right $ B.append bs pad where
                     pad = B.replicate p (fromIntegral p)
                     p   = k' - (B.length bs `mod` k')
                     k'  = fromIntegral k
+
+-- | Removes padding from a byte string which as been padded to a multiple of
+-- given octets using the PKCS#7 process
+-- (http://tools.ietf.org/html/rfc5652#section-6.3).
+--
+-- Returns an error if:
+--   * the given chunk length @k@ is not in the range @[1, 256]@, or
+--   * the length of the given byte string is not a multiple of @k@, or
+--   * the padding bytes of the given byte string are not well-formed
+pkcs7Unpad      :: Integer -> B.ByteString -> Either String B.ByteString
+pkcs7Unpad k bs = do
+  checkPad
+  len <- inputLen
+  strip len
+      where
+        checkPad = if not (k > 0 && k <= 256)
+                   then Left $ "pkcs7Unpad: Input length not multiple of " ++
+                        show k
+                   else Right k
+        inputLen = if not (len `mod` k' == 0 )
+                   then Left $ "pkcs7Unpad: Input length not multiple of " ++
+                        show k
+                   else Right len
+                       where
+                         len = B.length bs
+                         k'  = fromIntegral k
+        strip len = if pad /= expectedPad
+                    then Left $ "pkcs7Unpad: Malformed padding: " ++ show pad
+                    else Right unpadded where
+                        (unpadded, pad) = B.splitAt (len - padLen) bs
+                        expectedPad     = B.replicate padLen lastByte
+                        lastByte        = B.last bs
+                        padLen          = fromIntegral lastByte
 
 -- | Decrypts a byte string with the given key using AES in ECB mode.
 decryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString

@@ -37,6 +37,17 @@ Library
   HS-Source-Dirs:	src
   ghc-options:		-Wall -O2
 
+Test-Suite test-matasano
+  Type:                 exitcode-stdio-1.0
+  Main-Is:              tests/Main.hs
+  Build-Depends:        base == 4.6.*,
+                        bytestring == 0.10.*,
+                        matasano,
+                        QuickCheck >= 2,
+                        test-framework,
+                        test-framework-quickcheck2
+  ghc-options:          -threaded
+
 Executable problem-1
   Build-Depends:        base == 4.6.*,
                         matasano
@@ -118,4 +129,11 @@ Executable problem-12
                         bytestring == 0.10.*,
                         matasano
   Main-Is:		src/problem-12.hs
+  ghc-options:		-Wall -O2
+
+Executable problem-15
+  Build-Depends:        base == 4.6.*,
+                        bytestring == 0.10.*,
+                        matasano
+  Main-Is:		problems/problem-15.hs
   ghc-options:		-Wall -O2

@@ -22,9 +22,15 @@ main = do
   let input = C.pack "YELLOW SUBMARINE"
       padded = M.pkcs7Pad 20 input
       expected = B.append input (B.replicate 4 0x04)
-  if padded /= expected
-     then do
-          putStrLn $ "Error: " ++ show padded ++ " /= " ++ show expected
-          exitWith $ ExitFailure 1
-     else
-         putStrLn "OK"
+  case padded of
+    Left err ->
+             do
+               putStrLn $ "Error: " ++ show err
+               exitWith $ ExitFailure 1
+    Right padded ->
+             if padded /= expected
+             then do
+               putStrLn $ "Error: " ++ show padded ++ " /= " ++ show expected
+               exitWith $ ExitFailure 1
+             else
+                 putStrLn "OK"
