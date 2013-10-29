@@ -15,6 +15,7 @@ module Matasano
       -- * Operations on byte strings
     , chunks
     , pkcs7Pad
+    , pkcs7Unpad
 
       -- * Encryption functions
     , xorEncrypt
@@ -173,6 +174,31 @@ pkcs7Pad k bs = if not (k > 0 && k <= 256)
                     pad = B.replicate p (fromIntegral p)
                     p   = k' - (B.length bs `mod` k')
                     k'  = fromIntegral k
+
+-- | Removes padding from a byte string which as been padded to a multiple of
+-- given octets using the PKCS#7 process
+-- (http://tools.ietf.org/html/rfc5652#section-6.3).
+--
+-- Raises an error if:
+--   * the given chunk length @k@ is not in the range @[1, 256]@, or
+--   * the length of the given byte string is not a multiple of @k@, or
+--   * the padding bytes of the given byte string are not well-formed
+pkcs7Unpad      :: Integer -> B.ByteString -> B.ByteString
+pkcs7Unpad k bs = if not (k > 0 && k <= 256)
+                  then error $ "pkcs7Unpad: Chunk length " ++ show k ++
+                       " not the range [1, 256]"
+                  else
+                      if not (len `mod` k' == 0 )
+                      then error $ "pkcs7Unpad: Input length not multiple of " ++ show k
+                      else if pad /= expectedPad
+                           then error $ "pkcs7Unpad: Malformed padding: " ++ show pad
+                           else unpadded where
+                               (unpadded, pad) = B.splitAt (len - padLen) bs
+                               expectedPad     = B.replicate padLen lastByte
+                               lastByte        = B.last bs
+                               padLen          = fromIntegral lastByte
+                               k'              = fromIntegral k
+                               len             = B.length bs
 
 -- | Decrypts a byte string with the given key using AES in ECB mode.
 decryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString

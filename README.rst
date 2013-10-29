@@ -130,4 +130,10 @@ The first lines of the decrypted text read:
     Vanilla's on the mike, man I'm not lazy.
 
 
+Problem 15: PKCS#7 padding validation
+-------------------------------------
+The program ``problems/problem-15`` exercises the function
+``M.pkcs7Unpack``, which implements PKCS#7 unpadding.
+
+
   .. _`Haskell Platform`: http://www.haskell.org/platform/
