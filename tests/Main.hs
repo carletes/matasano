@@ -27,7 +27,8 @@ pkcs7_valid_pad k = (k >= 1) && (k <= 256)
 -- The PKCS#7 padding multiple must be in the range @[1, 256]@
 prop_pkcs7_valid_pad k bs =
     (not $ pkcs7_valid_pad k) ==>
-    M.pkcs7Pad k bs == Left "boo" where
+    M.pkcs7Pad k bs == Left ("pkcs7Pad: Chunk length " ++ show k ++
+                             " not the range [1, 256]") where
         types = (k::Integer, bs::B.ByteString)
 
 -- The length of a padded byte string  is a multiple of the padding length.
