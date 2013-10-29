@@ -23,6 +23,7 @@ module Matasano
     , encryptAES_CBC
     , decryptAES_ECB
     , encryptAES_ECB
+    , encryptAES_ECB_PKCS7
 
       -- * Text analysis functions
     , Frequencies
@@ -221,6 +222,15 @@ encryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString
 encryptAES_ECB k bs = B.fromStrict $ encryptECB k' bs' where
     k' = initAES $ B.toStrict k
     bs' = B.toStrict bs
+
+-- | Encrypts a byte string with the given key using AES in ECB mode, padding
+-- the input first using PKCS#7
+encryptAES_ECB_PKCS7      :: B.ByteString -> B.ByteString -> B.ByteString
+encryptAES_ECB_PKCS7 k bs = encryptAES_ECB k padded where
+    padded = case pkcs7Pad kLen bs of
+               Right bs' -> bs'
+               Left _    -> error "encryptAES_ECB_PKCS7: Key too long"
+    kLen   = fromIntegral $ B.length k
 
 -- | Decrypts a byte string with the given key and IV using AES in CBC mode.
 decryptAES_CBC         :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
