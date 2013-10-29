@@ -61,7 +61,7 @@ unknownString = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg" +
                 "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg" ++
                 "YnkK"
 oracle              :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
-oracle bs unknown k = M.encryptAES_ECB k (B.concat [bs, unknown])
+oracle bs unknown k = M.encryptAES_ECB_PKCS7 k (B.concat [bs, unknown])
 
 blockSize    :: B.ByteString -> B.ByteString -> [Maybe M.ChunkFrequencies]
 blockSize unknown k = map process [1 .. 100] where
