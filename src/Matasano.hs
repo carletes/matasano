@@ -185,21 +185,29 @@ pkcs7Pad k bs = if not (k > 0 && k <= 256)
 --   * the length of the given byte string is not a multiple of @k@, or
 --   * the padding bytes of the given byte string are not well-formed
 pkcs7Unpad      :: Integer -> B.ByteString -> Either String B.ByteString
-pkcs7Unpad k bs = if not (k > 0 && k <= 256)
-                  then Left $ "pkcs7Unpad: Chunk length " ++ show k ++
-                       " not the range [1, 256]"
-                  else
-                      if not (len `mod` k' == 0 )
-                      then Left $ "pkcs7Unpad: Input length not multiple of " ++ show k
-                      else if pad /= expectedPad
-                           then Left $ "pkcs7Unpad: Malformed padding: " ++ show pad
-                           else Right unpadded where
-                               (unpadded, pad) = B.splitAt (len - padLen) bs
-                               expectedPad     = B.replicate padLen lastByte
-                               lastByte        = B.last bs
-                               padLen          = fromIntegral lastByte
-                               k'              = fromIntegral k
-                               len             = B.length bs
+pkcs7Unpad k bs = do
+  checkPad
+  len <- inputLen
+  strip len
+      where
+        checkPad = if not (k > 0 && k <= 256)
+                   then Left $ "pkcs7Unpad: Input length not multiple of " ++
+                        show k
+                   else Right k
+        inputLen = if not (len `mod` k' == 0 )
+                   then Left $ "pkcs7Unpad: Input length not multiple of " ++
+                        show k
+                   else Right len
+                       where
+                         len = B.length bs
+                         k'  = fromIntegral k
+        strip len = if pad /= expectedPad
+                    then Left $ "pkcs7Unpad: Malformed padding: " ++ show pad
+                    else Right unpadded where
+                        (unpadded, pad) = B.splitAt (len - padLen) bs
+                        expectedPad     = B.replicate padLen lastByte
+                        lastByte        = B.last bs
+                        padLen          = fromIntegral lastByte
 
 -- | Decrypts a byte string with the given key using AES in ECB mode.
 decryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString
