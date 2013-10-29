@@ -135,5 +135,5 @@ Executable problem-15
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         matasano
-  Main-Is:		problems/problem-15.hs
+  Main-Is:		src/problem-15.hs
   ghc-options:		-Wall -O2
