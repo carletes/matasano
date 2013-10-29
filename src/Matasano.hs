@@ -165,12 +165,13 @@ chunks n bs = if bs == B.empty
 -- | Pad a given byte string to a multiple of given octets using the PKCS#7
 -- process (http://tools.ietf.org/html/rfc5652#section-6.3).
 --
--- Raises an error if the given chunk length @k@ is not in the range @[1, 256]@
-pkcs7Pad      :: Integer -> B.ByteString -> B.ByteString
+-- Returns an error if the given chunk length @k@ is not in the
+-- range @[1, 256]@
+pkcs7Pad      :: Integer -> B.ByteString -> Either String B.ByteString
 pkcs7Pad k bs = if not (k > 0 && k <= 256)
-                then error $ "pkcs7Pad: Chunk length " ++ show k ++
+                then Left $ "pkcs7Pad: Chunk length " ++ show k ++
                          " not the range [1, 256]"
-                else B.append bs pad where
+                else Right $ B.append bs pad where
                     pad = B.replicate p (fromIntegral p)
                     p   = k' - (B.length bs `mod` k')
                     k'  = fromIntegral k
