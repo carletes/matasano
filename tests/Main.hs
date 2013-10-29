@@ -18,7 +18,8 @@ main = defaultMain tests
 tests = [
         testGroup "PKCS#7" [
                 testProperty "Valid padding length" prop_pkcs7_valid_pad,
-                testProperty "Length of padded string" prop_pkcs7_len
+                testProperty "Length of padded string" prop_pkcs7_len,
+                testProperty "Identity" prop_pkcs7_identity
             ]
         ]
 
