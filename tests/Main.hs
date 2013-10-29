@@ -27,14 +27,14 @@ pkcs7_valid_pad k = (k >= 1) && (k <= 256)
 
 -- The PKCS#7 padding multiple must be in the range @[1, 256]@
 prop_pkcs7_valid_pad k bs =
-    (not $ pkcs7_valid_pad k) ==>
+    not (pkcs7_valid_pad k) ==>
     M.pkcs7Pad k bs == Left ("pkcs7Pad: Chunk length " ++ show k ++
                              " not the range [1, 256]") where
         types = (k::Integer, bs::B.ByteString)
 
 -- The length of a padded byte string  is a multiple of the padding length.
 prop_pkcs7_len k bs =
-    (pkcs7_valid_pad k) ==>
+    pkcs7_valid_pad k ==>
     padLen == len + k' - (len `mod` k') where
         padLen = case M.pkcs7Pad k bs of
                    Right padded -> B.length padded
@@ -45,8 +45,8 @@ prop_pkcs7_len k bs =
 
 -- Unpadding a padded string returns the original string.
 prop_pkcs7_identity k bs =
-    (pkcs7_valid_pad k) ==>
-    M.pkcs7Unpad k (padded) == Right bs where
+    pkcs7_valid_pad k ==>
+    M.pkcs7Unpad k padded == Right bs where
         padded = case M.pkcs7Pad k bs of
                    Right bs' -> bs'
                    Left err  -> error err
