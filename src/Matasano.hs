@@ -35,6 +35,7 @@ module Matasano
     , ChunkFrequencies
     , guessXorKey
     , randomBytes
+    , randomAESKey
     , CipherMode(..)
     , detectECB
     , encryptionOracle
