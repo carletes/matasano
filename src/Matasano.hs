@@ -217,7 +217,7 @@ decryptAES_ECB k bs = B.fromStrict $ decryptECB k' bs' where
     k' = initAES $ B.toStrict k
     bs' = B.toStrict bs
 
--- | Encrypts a byte string with the given keyV using AES in ECB mode.
+-- | Encrypts a byte string with the given key using AES in ECB mode.
 encryptAES_ECB      :: B.ByteString -> B.ByteString -> B.ByteString
 encryptAES_ECB k bs = B.fromStrict $ encryptECB k' bs' where
     k' = initAES $ B.toStrict k
