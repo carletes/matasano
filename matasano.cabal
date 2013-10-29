@@ -112,3 +112,10 @@ Executable problem-11
                         matasano
   Main-Is:		src/problem-11.hs
   ghc-options:		-Wall -O2
+
+Executable problem-12
+  Build-Depends:        base == 4.6.*,
+                        bytestring == 0.10.*,
+                        matasano
+  Main-Is:		src/problem-12.hs
+  ghc-options:		-Wall -O2
