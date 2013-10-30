@@ -66,9 +66,13 @@ oracle              :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteStr
 oracle bs unknown k = M.encryptAES_ECB_PKCS7 k (B.concat [bs, unknown])
 
 detectECB    :: B.ByteString -> Integer
-detectECB bs = maximum $ map (fromIntegral . M.longuestChunk) freqs where
-    freqs = mapMaybe (flip M.detectECB bs . fromIntegral) [n, n - 1 .. 1]
-    n     = B.length bs `div` 2
+detectECB bs = case chunkSizes of
+                 [] -> 0
+                 _  -> maximum chunkSizes
+    where
+      chunkSizes = map (fromIntegral . M.longuestChunk) freqs
+      freqs      = mapMaybe (flip M.detectECB bs . fromIntegral) [n, n - 1 .. 1]
+      n          = B.length bs `div` 2
 
 -- Guess ECB block size of @unknown@ (without looking at the length of @k@).
 --
