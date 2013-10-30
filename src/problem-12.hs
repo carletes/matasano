@@ -76,10 +76,10 @@ detectECB bs = case chunkSizes of
 
 -- Guess ECB block size of @unknown@ (without looking at the length of @k@).
 --
--- Sometimes @detectECB@ reports a block size of 2 for some of the first
+-- Sometimes @detectECB@ reports a block size of 2 or 3 for some of the first
 -- iterations, so we say here:
 --
---     dropWhile (< 3)
+--     dropWhile (< 4)
 --
 -- instead of the obvious:
 --
