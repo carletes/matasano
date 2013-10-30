@@ -61,6 +61,7 @@ unknownString = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg" +
                 "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq" ++
                 "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg" ++
                 "YnkK"
+
 oracle              :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
 oracle bs unknown k = M.encryptAES_ECB_PKCS7 k (B.concat [bs, unknown])
 
@@ -89,7 +90,7 @@ blockSize unknown k = head $ dropWhile (< 3) $ map process [1 .. 100] where
 solve          :: B.ByteString -> B.ByteString -> IO ()
 solve unknown k = do
   let blk = blockSize unknown k
-  print $ blk
+  print blk
 
 main :: IO ()
 main = do
@@ -100,5 +101,3 @@ main = do
                    putStrLn $ "Invalid base64-encoded text: " ++ err
                    exitWith $ ExitFailure 1
       Right bs -> solve bs k
-
-
