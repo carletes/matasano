@@ -35,6 +35,7 @@ module Matasano
       -- * Cryptanalysis functions
     , RankedKey(key)
     , ChunkFrequencies
+    , longuestChunk
     , guessXorKey
     , randomBytes
     , randomAESKey
@@ -276,6 +277,12 @@ randomBool = do
 --
 -- Keys are the chunks, and values are their frequencies.
 type ChunkFrequencies = Map.Map B.ByteString Integer
+
+-- | Returns the length of the longuest chunk in a chunk frequencies map.
+longuestChunk      :: ChunkFrequencies -> Integer
+longuestChunk freq = if Map.null freq
+                     then 0
+                     else fromIntegral $ maximum $ map B.length (Map.keys freq)
 
 -- | Returns the chunk frequencies of a given length in a given byte
 -- string.

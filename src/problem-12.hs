@@ -49,6 +49,7 @@
 --
 -- f. Repeat for the next byte.
 
+import Data.Maybe (mapMaybe)
 import System.Exit (exitWith, ExitCode(..))
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C
@@ -63,10 +64,25 @@ unknownString = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg" +
 oracle              :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
 oracle bs unknown k = M.encryptAES_ECB_PKCS7 k (B.concat [bs, unknown])
 
-blockSize    :: B.ByteString -> B.ByteString -> [Maybe M.ChunkFrequencies]
-blockSize unknown k = map process [1 .. 100] where
-    process :: Int -> Maybe M.ChunkFrequencies
-    process n = M.detectECB (fromIntegral n) bs where
+detectECB    :: B.ByteString -> Integer
+detectECB bs = maximum $ map (fromIntegral . M.longuestChunk) freqs where
+    freqs = mapMaybe (flip M.detectECB bs . fromIntegral) [n, n - 1 .. 1]
+    n     = B.length bs `div` 2
+
+-- Guess ECB block size of @unknown@ (without looking at the length of @k@).
+--
+-- Sometimes @detectECB@ reports a block size of 2 for some of the first
+-- iterations, so we say here:
+--
+--     dropWhile (< 3)
+--
+-- instead of the obvious:
+--
+--     dropwhile (< 2)
+blockSize           :: B.ByteString -> B.ByteString -> Integer
+blockSize unknown k = head $ dropWhile (< 3) $ map process [1 .. 100] where
+    process   :: Int -> Integer
+    process n = detectECB bs where
         bs :: B.ByteString
         bs = oracle (C.replicate (fromIntegral n) 'A') unknown k
 
