@@ -57,13 +57,13 @@ import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Matasano as M
 
 unknownString :: String
-unknownString = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg" ++
-                "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq" ++
-                "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg" ++
-                "YnkK"
+unknownString = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbX" ++
+                "kgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmlu" ++
+                "ZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZH" ++
+                "JvdmUgYnkK"
 
-oracle              :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
-oracle bs unknown k = M.encryptAES_ECB_PKCS7 k (B.concat [bs, unknown])
+oracle          :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
+oracle bs unk k = M.encryptAES_ECB_PKCS7 k (B.concat [bs, unk])
 
 detectECB    :: B.ByteString -> Integer
 detectECB bs = case chunkSizes of
@@ -71,7 +71,7 @@ detectECB bs = case chunkSizes of
                  _  -> maximum chunkSizes
     where
       chunkSizes = map (fromIntegral . M.longuestChunk) freqs
-      freqs      = mapMaybe (flip M.detectECB bs . fromIntegral) [n, n - 1 .. 1]
+      freqs      = mapMaybe (flip M.detectECB bs . fromIntegral) [n, n-1 .. 1]
       n          = B.length bs `div` 2
 
 -- Guess ECB block size of @unknown@ (without looking at the length of @k@).
