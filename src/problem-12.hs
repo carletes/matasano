@@ -81,7 +81,7 @@ detectECB bs = maximum $ map (fromIntegral . M.longuestChunk) freqs where
 --
 --     dropwhile (< 2)
 blockSize           :: B.ByteString -> B.ByteString -> Integer
-blockSize unknown k = head $ dropWhile (< 3) $ map process [1 .. 100] where
+blockSize unknown k = head $ dropWhile (< 3) $ map process [1 ..] where
     process   :: Int -> Integer
     process n = detectECB bs where
         bs :: B.ByteString
