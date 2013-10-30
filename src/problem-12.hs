@@ -49,10 +49,12 @@
 --
 -- f. Repeat for the next byte.
 
+import Data.Word (Word8)
 import Data.Maybe (mapMaybe)
 import System.Exit (exitWith, ExitCode(..))
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.Map as Map
 
 import qualified Matasano as M
 
@@ -74,6 +76,22 @@ detectECB bs = case chunkSizes of
       freqs      = mapMaybe (flip M.detectECB bs . fromIntegral) [n, n-1 .. 1]
       n          = B.length bs `div` 2
 
+type BlockMap = Map.Map B.ByteString Word8
+
+mkBlockMap :: B.ByteString -> B.ByteString -> Integer -> BlockMap
+mkBlockMap unk k n = foldl go Map.empty [0 .. 255] where
+    go     :: BlockMap -> Word8 -> BlockMap
+    go m w = Map.insert block' w m where
+        block' = oracle block unk k
+        block  = B.concat [B.replicate (fromIntegral (n - 1)) 0, B.singleton w]
+
+findByte         :: B.ByteString -> B.ByteString -> Integer -> Maybe Word8
+findByte unk k n = Map.lookup block' blockMap where
+    block'   = oracle block unk k
+    block    = B.concat [prefix, B.take 1 unk]
+    prefix   = B.replicate (fromIntegral (n - 1)) 0
+    blockMap = mkBlockMap unk k n
+
 -- Guess ECB block size of @unknown@ (without looking at the length of @k@).
 --
 -- Sometimes @detectECB@ reports a block size of 2 or 3 for some of the first
@@ -94,7 +112,8 @@ blockSize unknown k = head $ dropWhile (< 3) $ map process [1 ..] where
 solve          :: B.ByteString -> B.ByteString -> IO ()
 solve unknown k = do
   let blk = blockSize unknown k
-  print blk
+      bytes = findByte unknown k blk
+  print bytes
 
 main :: IO ()
 main = do
