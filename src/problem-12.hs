@@ -85,12 +85,34 @@ mkBlockMap unk k n = foldl go Map.empty [0 .. 255] where
         block' = oracle block unk k
         block  = B.concat [B.replicate (fromIntegral (n - 1)) 0, B.singleton w]
 
-findByte         :: B.ByteString -> B.ByteString -> Integer -> Maybe Word8
-findByte unk k n = Map.lookup block' blockMap where
-    block'   = oracle block unk k
-    block    = B.concat [prefix, B.take 1 unk]
-    prefix   = B.replicate (fromIntegral (n - 1)) 0
-    blockMap = mkBlockMap unk k n
+findByte0         :: B.ByteString -> B.ByteString -> Integer -> Maybe B.ByteString
+findByte0 unk k n = case b of
+                      Just w -> Just $ B.singleton w
+                      Nothing -> Nothing
+    where
+      b = Map.lookup block' blockMap
+      block'   = oracle block unk k
+      block    = B.concat [prefix, B.take 1 unk]
+      prefix   = B.replicate (fromIntegral (n - 1)) 0
+      blockMap = mkBlockMap unk k n
+
+findByteN         :: B.ByteString -> B.ByteString -> B.ByteString -> Integer -> Maybe B.ByteString
+findByteN bs unk k n = case b of
+                      Just w -> Just $ B.singleton w
+                      Nothing -> Nothing
+    where
+      b = Map.lookup block' blockMap
+      block'   = oracle block unk k
+      block    = B.concat [prefix, bs, B.take 1 unk]
+      prefix   = B.replicate (fromIntegral (n - 1)) 0
+      blockMap = mkBlockMap unk k n
+
+findBytes         :: B.ByteString -> B.ByteString -> Integer -> Maybe B.ByteString
+findBytes unk k n = case bytes of
+                      Nothing -> Nothing
+                      Just bs -> Just $ B.concat bs
+    where
+      bytes = sequence [findByte0 unk k n]
 
 -- Guess ECB block size of @unknown@ (without looking at the length of @k@).
 --
@@ -112,7 +134,7 @@ blockSize unknown k = head $ dropWhile (< 3) $ map process [1 ..] where
 solve          :: B.ByteString -> B.ByteString -> IO ()
 solve unknown k = do
   let blk = blockSize unknown k
-      bytes = findByte unknown k blk
+      bytes = findBytes unknown k blk
   print bytes
 
 main :: IO ()
