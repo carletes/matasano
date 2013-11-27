@@ -31,6 +31,7 @@ Library
                         base64-bytestring == 1.0.*,
                         cipher-aes == 0.2.*,
                         containers == 0.5.*,
+                        mtl == 2.1.*,
                         random == 1.0.*
   Exposed-Modules:      Matasano,
                         Matasano.Utils
@@ -128,6 +129,7 @@ Executable problem-12
   Build-Depends:        base == 4.6.*,
                         bytestring == 0.10.*,
                         containers == 0.5.*,
+                        mtl == 2.1.*,
                         matasano
   Main-Is:		src/problem-12.hs
   ghc-options:		-Wall -O2

@@ -49,23 +49,15 @@
 --
 -- f. Repeat for the next byte.
 
+import Control.Monad (foldM, forM)
+import Control.Monad.Reader (ask)
 import Data.Word (Word8)
 import Data.Maybe (mapMaybe)
-import System.Exit (exitWith, ExitCode(..))
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.Map as Map
 
 import qualified Matasano as M
-
-unknownString :: String
-unknownString = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbX" ++
-                "kgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmlu" ++
-                "ZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZH" ++
-                "JvdmUgYnkK"
-
-oracle          :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
-oracle bs unk k = M.encryptAES_ECB_PKCS7 k (B.concat [bs, unk])
 
 detectECB    :: B.ByteString -> Integer
 detectECB bs = case chunkSizes of
@@ -78,43 +70,34 @@ detectECB bs = case chunkSizes of
 
 type BlockMap = Map.Map B.ByteString Word8
 
-mkBlockMap :: B.ByteString -> B.ByteString -> Integer -> BlockMap
-mkBlockMap unk k n = foldl go Map.empty [0 .. 255] where
-    go     :: BlockMap -> Word8 -> BlockMap
-    go m w = Map.insert block' w m where
-        block' = oracle block unk k
-        block  = B.concat [B.replicate (fromIntegral (n - 1)) 0, B.singleton w]
+mkBlockMap   :: Integer -> M.Oracle12 BlockMap
+mkBlockMap n = foldM go Map.empty [0 .. 255] where
+    go     :: BlockMap -> Word8 -> M.Oracle12 BlockMap
+    go m w = do
+      let block = B.concat [B.replicate (fromIntegral (n - 1)) 0, B.singleton w]
+      block' <- M.oracle12 block
+      return $ Map.insert block' w m
 
-findByte0         :: B.ByteString -> B.ByteString -> Integer -> Maybe B.ByteString
-findByte0 unk k n = case b of
-                      Just w -> Just $ B.singleton w
-                      Nothing -> Nothing
-    where
-      b = Map.lookup block' blockMap
-      block'   = oracle block unk k
-      block    = B.concat [prefix, B.take 1 unk]
-      prefix   = B.replicate (fromIntegral (n - 1)) 0
-      blockMap = mkBlockMap unk k n
+findByte0   :: Integer -> M.Oracle12 (Maybe B.ByteString)
+findByte0 n = do
+  env <- ask
+  blockMap <- mkBlockMap n
+  let block  = B.concat [prefix, B.take 1 secret]
+      prefix = B.replicate (fromIntegral (n - 1)) 0
+      secret = M.oracle12Secret env
+  block' <- M.oracle12 block
+  return $ case (Map.lookup block' blockMap) of
+             Just b  -> Just $ B.singleton b
+             Nothing -> Nothing
 
-findByteN         :: B.ByteString -> B.ByteString -> B.ByteString -> Integer -> Maybe B.ByteString
-findByteN bs unk k n = case b of
-                      Just w -> Just $ B.singleton w
-                      Nothing -> Nothing
-    where
-      b = Map.lookup block' blockMap
-      block'   = oracle block unk k
-      block    = B.concat [prefix, bs, B.take 1 unk]
-      prefix   = B.replicate (fromIntegral (n - 1)) 0
-      blockMap = mkBlockMap unk k n
+findBytes   :: Integer -> M.Oracle12 (Maybe B.ByteString)
+findBytes n = do
+  bytes <- findByte0 n
+  case (sequence [bytes]) of
+    Nothing -> return Nothing
+    Just bs -> return $ Just (B.concat bs)
 
-findBytes         :: B.ByteString -> B.ByteString -> Integer -> Maybe B.ByteString
-findBytes unk k n = case bytes of
-                      Nothing -> Nothing
-                      Just bs -> Just $ B.concat bs
-    where
-      bytes = sequence [findByte0 unk k n]
-
--- Guess ECB block size of @unknown@ (without looking at the length of @k@).
+-- Guess ECB block size of the oracle function.
 --
 -- Sometimes @detectECB@ reports a block size of 2 or 3 for some of the first
 -- iterations, so we say here:
@@ -124,25 +107,23 @@ findBytes unk k n = case bytes of
 -- instead of the obvious:
 --
 --     dropwhile (< 2)
-blockSize           :: B.ByteString -> B.ByteString -> Integer
-blockSize unknown k = head $ dropWhile (< 3) $ map process [1 ..] where
-    process   :: Int -> Integer
-    process n = detectECB bs where
-        bs :: B.ByteString
-        bs = oracle (C.replicate (fromIntegral n) 'A') unknown k
+blockSize :: M.Oracle12 Integer
+blockSize = do
+  let go   :: Int -> M.Oracle12 Integer
+      go n = do
+              bs <- M.oracle12 (C.replicate (fromIntegral n) 'A')
+              return $ detectECB bs
+  candidates <- forM [1 ..] go
+  return $ head $ dropWhile (< 3) candidates
 
-solve          :: B.ByteString -> B.ByteString -> IO ()
-solve unknown k = do
-  let blk = blockSize unknown k
-      bytes = findBytes unknown k blk
-  print bytes
+solve :: M.Oracle12 (Maybe B.ByteString)
+solve = do
+  blk   <- blockSize
+  bytes <- findBytes blk
+  return bytes
 
 main :: IO ()
 main = do
-    k <- M.randomAESKey
-    let unknown = M.base64ToBytes unknownString
-    case unknown of
-      Left err -> do
-                   putStrLn $ "Invalid base64-encoded text: " ++ err
-                   exitWith $ ExitFailure 1
-      Right bs -> solve bs k
+  env <- M.mkOracle12Env
+  let secret = M.runOracle12 solve env
+  print secret

@@ -41,8 +41,15 @@ module Matasano
     , randomAESKey
     , CipherMode(..)
     , detectECB
+
+      -- * Encryption oracles
     , encryptionOracle
     , leakyEncryptionOracle
+    , Oracle12
+    , oracle12
+    , oracle12Secret
+    , mkOracle12Env
+    , runOracle12
     ) where
 
 -- Looks like the best way to handle raw byte data in Haskell is with
@@ -55,6 +62,8 @@ import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.ByteString.Base16.Lazy as B16
 import qualified Data.ByteString.Base64.Lazy as B64
 import qualified Data.Map as Map
+import Control.Monad.Identity (Identity, runIdentity)
+import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Crypto.Cipher.AES (decryptECB, encryptECB, initAES)
 import Data.Bits (popCount, xor)
 import Data.List (sort)
@@ -328,3 +337,31 @@ leakyEncryptionOracle bs = do
            else encryptAES_ECB k bs
       mode = if cbc then CBC else ECB
   return (B.concat [p, encrypted, s], mode)
+
+data Oracle12Env = Oracle12Env {
+      oracle12Key :: B.ByteString
+    , oracle12Secret :: B.ByteString
+}
+
+mkOracle12Env :: IO Oracle12Env
+mkOracle12Env = do
+  gen <- newStdGen
+  k   <- randomAESKey
+  let unk = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg" ++
+            "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq" ++
+            "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg" ++
+            "YnkK"
+      Right secret = base64ToBytes unk
+  return $ Oracle12Env k secret
+
+type Oracle12 a = ReaderT Oracle12Env Identity a
+
+oracle12    :: B.ByteString -> Oracle12 B.ByteString
+oracle12 bs = do
+  env <- ask
+  let bs' = B.concat [bs, oracle12Secret env]
+      k   = oracle12Key env
+  return $ encryptAES_ECB_PKCS7 k bs'
+
+runOracle12         :: Oracle12 a -> Oracle12Env -> a
+runOracle12 ocl env = runIdentity (runReaderT ocl env)
