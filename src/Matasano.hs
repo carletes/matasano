@@ -189,7 +189,7 @@ pkcs7Pad k bs = if not (k > 0 && k <= 256)
 --   * the padding bytes of the given byte string are not well-formed
 pkcs7Unpad      :: Integer -> B.ByteString -> Either String B.ByteString
 pkcs7Unpad k bs = do
-  checkPad
+  _   <- checkPad
   len <- inputLen
   strip len
       where
