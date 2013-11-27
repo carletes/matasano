@@ -86,14 +86,14 @@ findByte0 n = do
       prefix = B.replicate (fromIntegral (n - 1)) 0
       secret = M.oracle12Secret env
   block' <- M.oracle12 block
-  return $ case (Map.lookup block' blockMap) of
+  return $ case Map.lookup block' blockMap of
              Just b  -> Just $ B.singleton b
              Nothing -> Nothing
 
 findBytes   :: Integer -> M.Oracle12 (Maybe B.ByteString)
 findBytes n = do
   bytes <- findByte0 n
-  case (sequence [bytes]) of
+  case sequence [bytes] of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
 
@@ -119,8 +119,7 @@ blockSize = do
 solve :: M.Oracle12 (Maybe B.ByteString)
 solve = do
   blk   <- blockSize
-  bytes <- findBytes blk
-  return bytes
+  findBytes blk
 
 main :: IO ()
 main = do
