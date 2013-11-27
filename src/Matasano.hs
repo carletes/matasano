@@ -345,7 +345,6 @@ data Oracle12Env = Oracle12Env {
 
 mkOracle12Env :: IO Oracle12Env
 mkOracle12Env = do
-  gen <- newStdGen
   k   <- randomAESKey
   let unk = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg" ++
             "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq" ++
