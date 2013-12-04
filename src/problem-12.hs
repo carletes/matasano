@@ -50,7 +50,6 @@
 -- f. Repeat for the next byte.
 
 import Control.Monad (foldM, forM)
-import Control.Monad.Reader (ask)
 import Data.Word (Word8)
 import Data.Maybe (mapMaybe)
 import qualified Data.ByteString.Lazy as B
@@ -80,14 +79,12 @@ mkBlockMap n known = foldM go Map.empty [0 .. 255] where
       block' <- M.oracle12 block
       return $ Map.insert block' w m
 
-findByte                  :: Integer -> Maybe B.ByteString -> Word8 -> M.Oracle12 (Maybe B.ByteString)
+findByte                  :: Integer -> Maybe B.ByteString -> Integer -> M.Oracle12 (Maybe B.ByteString)
 findByte _ Nothing _      = return Nothing
-findByte n (Just known) b = do
+findByte n (Just known) _ = do
   blockMap <- mkBlockMap n known
-  let block  = B.concat [prefix,
-                         known,
-                         B.singleton b]
-      prefix = B.replicate (fromIntegral (n - (k + 1))) 0
+  let block  = B.concat [B.replicate (fromIntegral (n - (k + 1))) 0, 
+                         known]
       k      = fromIntegral $ B.length known
   block' <- M.oracle12 block
   return $ case Map.lookup block' blockMap of
@@ -96,8 +93,7 @@ findByte n (Just known) b = do
 
 findBytes   :: Integer -> M.Oracle12 (Maybe B.ByteString)
 findBytes n = do
-  env <- ask
-  bytes <- foldM (findByte n) (Just B.empty) (B.unpack $ M.oracle12Secret env)
+  bytes <- foldM (findByte n) (Just B.empty) [1]
   case sequence [bytes] of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)

@@ -47,7 +47,6 @@ module Matasano
     , leakyEncryptionOracle
     , Oracle12
     , oracle12
-    , oracle12Secret
     , mkOracle12Env
     , runOracle12
     ) where
