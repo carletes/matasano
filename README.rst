@@ -130,6 +130,17 @@ The first lines of the decrypted text read:
     Vanilla's on the mike, man I'm not lazy.
 
 
+Problem 12: Byte-at-a-time ECB decryption, Full control version
+---------------------------------------------------------------
+The program ``src/problem-12.hs`` follows the tips given, and outputs
+the Base64-encoded secret:
+
+    Rollin' in my 5.0\
+    With my rag-top down so my hair can blow
+    The girlies on standby waving just to say hi
+    Did you stop? No, I just drove by
+
+
 Problem 15: PKCS#7 padding validation
 -------------------------------------
 The program ``problems/problem-15`` exercises the function
