@@ -20,9 +20,8 @@ import qualified Matasano as M
 main :: IO ()
 main = do
   let input = C.pack "YELLOW SUBMARINE"
-      padded = M.pkcs7Pad 20 input
       expected = B.append input (B.replicate 4 0x04)
-  case padded of
+  case M.pkcs7Pad 20 input  of
     Left err ->
              do
                putStrLn $ "Error: " ++ show err

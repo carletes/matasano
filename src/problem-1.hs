@@ -10,7 +10,10 @@
 
 import qualified Matasano as M
 
+source :: String
 source = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
+
+dest :: String
 dest = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t"
 
 result :: String
@@ -28,5 +31,6 @@ result = case M.hexToBytes source of
                                           then "OK"
                                           else "Nope: " ++ enc1 ++ " /= " ++ source
 
+main :: IO ()
 main =
   putStrLn result

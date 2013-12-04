@@ -57,6 +57,7 @@ Executable problem-1
 
 Executable problem-2
   Build-Depends:        base == 4.6.*,
+                        bytestring == 0.10.*,
                         matasano
   Main-Is:		src/problem-2.hs
   ghc-options:		-Wall -O2

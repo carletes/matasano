@@ -13,12 +13,12 @@
 
 import qualified Data.ByteString.Lazy as B
 import Data.Word
-import Data.List (sort)
 import System.Environment (getArgs)
 
 import qualified Matasano as M
 import Matasano.Utils (usage)
 
+candidates :: Either String [(Word8, B.ByteString)]
 candidates = do
   input <- M.hexToBytes "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
   let keys = map (\w -> (w, B.replicate inputLength w)) [1, 2 .. 255] where
@@ -28,6 +28,7 @@ candidates = do
 rankCandidates       :: [(Word8, B.ByteString)] -> M.Frequencies -> [(Double, Word8, B.ByteString)]
 rankCandidates cs f = map (\(w, bs) -> (M.rank bs f, w, bs)) cs
 
+main :: IO ()
 main = do
   argv <- getArgs
   case argv of
