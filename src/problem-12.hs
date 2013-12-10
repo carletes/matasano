@@ -99,6 +99,15 @@ findBytes n = do
     Just bs -> return $ Just (B.concat bs)
 
 -- Guess ECB block size of the oracle function.
+--
+-- Sometimes @detectECB@ reports a block size of 2 or 3 for some of the first
+-- iterations, so we say here:
+--
+--     dropWhile (< 4)
+--
+-- instead of the obvious:
+--
+--     dropwhile (< 2)
 blockSize :: M.Oracle12 Integer
 blockSize = do
   let go   :: Int -> M.Oracle12 Integer
@@ -106,7 +115,7 @@ blockSize = do
               bs <- M.oracle12 (B.replicate (fromIntegral n) 0)
               return $ detectECB bs
   candidates <- forM [1 ..] go
-  return $ head $ dropWhile (< 2) candidates
+  return $ head $ dropWhile (< 4) candidates
 
 solve :: M.Oracle12 (Maybe B.ByteString)
 solve = do
