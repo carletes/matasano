@@ -90,9 +90,40 @@ findByte n (Just known) _ = do
              Just b' -> Just $ B.concat [known, B.singleton b']
              Nothing -> Nothing
 
-findBytes   :: Integer -> M.Oracle12 (Maybe B.ByteString)
-findBytes n = do
+firstBlock   :: Integer -> M.Oracle12 (Maybe B.ByteString)
+firstBlock n = do
   bytes <- foldM (findByte n) (Just B.empty) [1 .. n]
+  case sequence [bytes] of
+    Nothing -> return Nothing
+    Just bs -> return $ Just (B.concat bs)
+
+mkBlockMap' :: Integer -> B.ByteString -> B.ByteString -> M.Oracle12 BlockMap
+mkBlockMap' n known b = foldM go Map.empty [0 .. 255] where
+    go     :: BlockMap -> Word8 -> M.Oracle12 BlockMap
+    go m w = do
+      let block = B.concat [B.drop (k + 1) b,
+                            known,
+                            B.singleton w]
+          k = fromIntegral $ B.length known
+      block' <- M.oracle12 block
+      return $ Map.insert (B.take (fromIntegral n) block') w m
+
+findByte'                    :: Integer -> Maybe B.ByteString -> Maybe B.ByteString -> Integer -> M.Oracle12 (Maybe B.ByteString)
+findByte' _ _ Nothing _      = return Nothing
+findByte' n (Just b) (Just known) _ = do
+  blockMap <- mkBlockMap' n known b
+  let block = B.concat [b,
+                        B.replicate (fromIntegral (n - (k + 1))) 0]
+      k = fromIntegral $ B.length known
+  enc <- M.oracle12 block
+  let block' = B.take (fromIntegral n) $ B.drop (2 * B.length b) enc
+  return $ case Map.lookup (B.take (fromIntegral n) block') blockMap of
+             Just b' -> Just $ B.concat [known, B.singleton b']
+             Nothing -> Nothing
+
+secondBlock     :: Integer -> Maybe B.ByteString -> M.Oracle12 (Maybe B.ByteString)
+secondBlock n b = do
+  bytes <- foldM (findByte' n b) (Just B.empty) [1 .. n]
   case sequence [bytes] of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
@@ -118,8 +149,12 @@ blockSize = do
 
 solve :: M.Oracle12 (Maybe B.ByteString)
 solve = do
-  blk   <- blockSize
-  findBytes blk
+  len   <- blockSize
+  b1 <- firstBlock len
+  b2 <- secondBlock len b1
+  case sequence [b1, b2] of
+    Nothing -> return Nothing
+    Just bs -> return $ Just (B.concat bs)
 
 main :: IO ()
 main = do
