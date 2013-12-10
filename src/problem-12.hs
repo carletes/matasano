@@ -83,8 +83,7 @@ findByte                  :: Integer -> Maybe B.ByteString -> Integer -> M.Oracl
 findByte _ Nothing _      = return Nothing
 findByte n (Just known) _ = do
   blockMap <- mkBlockMap n known
-  let block  = B.concat [B.replicate (fromIntegral (n - (k + 1))) 0, 
-                         known]
+  let block  = B.replicate (fromIntegral (n - (k + 1))) 0
       k      = fromIntegral $ B.length known
   block' <- M.oracle12 block
   return $ case Map.lookup (B.take (fromIntegral n) block') blockMap of
@@ -93,7 +92,7 @@ findByte n (Just known) _ = do
 
 findBytes   :: Integer -> M.Oracle12 (Maybe B.ByteString)
 findBytes n = do
-  bytes <- foldM (findByte n) (Just B.empty) [1]
+  bytes <- foldM (findByte n) (Just B.empty) [1 .. n]
   case sequence [bytes] of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
