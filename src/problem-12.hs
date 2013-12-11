@@ -105,8 +105,10 @@ mkBlockMap' n known b = foldM go Map.empty [0 .. 255] where
                             known,
                             B.singleton w]
           k = fromIntegral $ B.length known
-      block' <- M.oracle12 block
-      return $ Map.insert (B.take (fromIntegral n) block') w m
+      enc <- M.oracle12 block
+      let block' = B.take n' $ B.drop (B.length b - n') enc
+          n'     = fromIntegral n
+      return $ Map.insert block' w m
 
 findByte'                    :: Integer -> Maybe B.ByteString -> Maybe B.ByteString -> Integer -> M.Oracle12 (Maybe B.ByteString)
 findByte' _ _ Nothing _      = return Nothing
@@ -117,7 +119,7 @@ findByte' n (Just b) (Just known) _ = do
       k = fromIntegral $ B.length known
   enc <- M.oracle12 block
   let block' = B.take (fromIntegral n) $ B.drop (2 * B.length b) enc
-  return $ case Map.lookup (B.take (fromIntegral n) block') blockMap of
+  return $ case Map.lookup block' blockMap of
              Just b' -> Just $ B.concat [known, B.singleton b']
              Nothing -> Nothing
 
@@ -154,7 +156,11 @@ solve = do
   b2 <- secondBlock len b1
   case sequence [b1, b2] of
     Nothing -> return Nothing
-    Just bs -> return $ Just (B.concat bs)
+    Just bs -> do 
+          b3 <- secondBlock len (Just $ B.concat bs)
+          case sequence [b1, b2, b3] of
+            Nothing -> return Nothing
+            Just bs' -> return $ Just (B.concat bs')
 
 main :: IO ()
 main = do
