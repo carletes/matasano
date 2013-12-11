@@ -153,9 +153,10 @@ blockSize = do
 solve :: M.Oracle12 (Maybe B.ByteString)
 solve = do
   len   <- blockSize
+  enc <- M.oracle12 B.empty
   b1 <- firstBlock len
-  bs <- foldM (\b _ -> nBlocks len b) b1 [1 .. 7]
-  return $ bs
+  let count = fromIntegral (B.length enc) `div` len
+  foldM (\b _ -> nBlocks len b) b1 [2 .. count - 1]
 
 main :: IO ()
 main = do
