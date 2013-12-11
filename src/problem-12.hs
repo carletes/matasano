@@ -122,7 +122,7 @@ findByte' n (Just b) (Just known) _ = do
   let block' = B.take n' $ B.drop (2 * B.length b) enc
   return $ case Map.lookup block' blockMap of
              Just b' -> Just $ B.concat [known, B.singleton b']
-             Nothing -> Nothing
+             Nothing -> Just $ known
 
 nBlocks     :: Integer -> Maybe B.ByteString -> M.Oracle12 (Maybe B.ByteString)
 nBlocks n b = do
@@ -156,7 +156,7 @@ solve = do
   enc <- M.oracle12 B.empty
   b1 <- firstBlock len
   let count = fromIntegral (B.length enc) `div` len
-  foldM (\b _ -> nBlocks len b) b1 [2 .. count - 1]
+  foldM (\b _ -> nBlocks len b) b1 [2 .. count]
 
 main :: IO ()
 main = do
