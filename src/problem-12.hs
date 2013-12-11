@@ -124,10 +124,10 @@ findByte' n (Just b) (Just known) _ = do
              Just b' -> Just $ B.concat [known, B.singleton b']
              Nothing -> Nothing
 
-secondBlock     :: Integer -> Maybe B.ByteString -> M.Oracle12 (Maybe B.ByteString)
-secondBlock n b = do
+nBlocks     :: Integer -> Maybe B.ByteString -> M.Oracle12 (Maybe B.ByteString)
+nBlocks n b = do
   bytes <- foldM (findByte' n b) (Just B.empty) [1 .. n]
-  case sequence [bytes] of
+  case sequence (b : [bytes]) of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
 
@@ -154,14 +154,8 @@ solve :: M.Oracle12 (Maybe B.ByteString)
 solve = do
   len   <- blockSize
   b1 <- firstBlock len
-  b2 <- secondBlock len b1
-  case sequence [b1, b2] of
-    Nothing -> return Nothing
-    Just bs -> do 
-          b3 <- secondBlock len (Just $ B.concat bs)
-          case sequence [b1, b2, b3] of
-            Nothing -> return Nothing
-            Just bs' -> return $ Just (B.concat bs')
+  bs <- foldM (\b _ -> nBlocks len b) b1 [1 .. 7]
+  return $ bs
 
 main :: IO ()
 main = do
