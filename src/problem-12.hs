@@ -145,16 +145,25 @@ blockSize = do
   candidates <- forM [1 ..] go
   return $ head $ dropWhile (< 4) candidates
 
+-- | Remove any PKCS#7 padding from the given oracle secret candidate
+stripPKCS7 :: Maybe B.ByteString           -- ^ The secret
+           -> Integer                      -- ^ Block size
+           -> Oracle (Maybe B.ByteString)  -- ^ The secret with no padding
+stripPKCS7 Nothing _   = return Nothing
+stripPKCS7 (Just bs) n = return $ Just (strip bs) where
+    strip = B.pack . reverse . dropWhile (< n') . reverse . B.unpack
+    n'    = fromIntegral n
+
 solve :: Oracle (Maybe B.ByteString)
 solve = do
   len   <- blockSize
   enc <- oracle B.empty
   b1 <- nextBlock len (Just B.empty)
   let count = fromIntegral (B.length enc) `div` len
-  foldM (\b _ -> nextBlock len b) b1 [2 .. count]
+  secret <- foldM (\b _ -> nextBlock len b) b1 [2 .. count]
+  stripPKCS7 secret len
 
 main :: IO ()
 main = do
   env <- M.mkOracle12Env
-  let secret = M.runOracle12 solve env
-  print secret
+  print $ M.runOracle12 solve env
