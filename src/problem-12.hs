@@ -75,20 +75,26 @@ type BlockMap = Map.Map B.ByteString Word8
 oracle :: B.ByteString -> Oracle B.ByteString
 oracle = M.oracle12
 
--- | Build the block map needed to find the next unknown byte of the first
--- block.
+-- | Build the block map needed to find the next unknown byte of a block.
 mkBlockMap :: Integer          -- ^ Block size
            -> B.ByteString     -- ^ Bytes found in this block
+           -> B.ByteString     -- ^ Bytes found in previous blocks
            -> Oracle BlockMap  -- ^ The block map
-mkBlockMap n known = foldM go Map.empty [0 .. 255] where
+mkBlockMap n known b = foldM go Map.empty [0 .. 255] where
     go     :: BlockMap -> Word8 -> Oracle BlockMap
     go m w = do
-      let block = B.concat [B.replicate (fromIntegral (n - (k + 1))) 0,
+      let block = B.concat [prefix,
                             known,
                             B.singleton w]
-          k     = fromIntegral $ B.length known
-      block' <- oracle block
-      return $ Map.insert (B.take (fromIntegral n) block') w m
+          prefix = if b == B.empty
+                   then B.replicate (fromIntegral (n - (k' + 1))) 0
+                   else B.drop (k + 1) b
+          k      = B.length known
+          k'     = fromIntegral k
+          n'     = fromIntegral n
+      enc <- oracle block
+      let block' = B.take n' $ B.drop (B.length b - n') enc
+      return $ Map.insert block' w m
 
 -- | Find the next byte in the first block.
 nextByte :: Integer                      -- ^ Block size
@@ -97,7 +103,8 @@ nextByte :: Integer                      -- ^ Block size
          -> Oracle (Maybe B.ByteString)  -- ^ New block
 nextByte _ Nothing _      = return Nothing
 nextByte n (Just known) _ = do
-  blockMap <- mkBlockMap n known
+  --blockMap <- mkBlockMap n known
+  blockMap <- mkBlockMap n known B.empty
   let block  = B.replicate (fromIntegral (n - (k + 1))) 0
       k      = fromIntegral $ B.length known
   block' <- oracle block
@@ -114,23 +121,6 @@ firstBlock n = do
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
 
--- | Build the block map needed to find the next unknown byte of a block.
-mkBlockMap' :: Integer          -- ^ Block size
-            -> B.ByteString     -- ^ Bytes found in this block
-            -> B.ByteString     -- ^ Bytes found in previous blocks
-            -> Oracle BlockMap  -- ^ The block map
-mkBlockMap' n known b = foldM go Map.empty [0 .. 255] where
-    go     :: BlockMap -> Word8 -> Oracle BlockMap
-    go m w = do
-      let block = B.concat [B.drop (k + 1) b,
-                            known,
-                            B.singleton w]
-          k     = fromIntegral $ B.length known
-          n'    = fromIntegral n
-      enc <- oracle block
-      let block' = B.take n' $ B.drop (B.length b - n') enc
-      return $ Map.insert block' w m
-
 -- | Find the next byte in a block.
 nextByte' :: Integer                      -- ^ Block size
           -> Maybe B.ByteString           -- ^ Bytes found in previous blocks
@@ -139,7 +129,7 @@ nextByte' :: Integer                      -- ^ Block size
           -> Oracle (Maybe B.ByteString)  -- ^ New block
 nextByte' _ _ Nothing _             = return Nothing
 nextByte' n (Just b) (Just known) _ = do
-  blockMap <- mkBlockMap' n known b
+  blockMap <- mkBlockMap n known b
   let block = B.concat [b,
                         B.replicate (n' - (k + 1)) 0]
       k     = fromIntegral $ B.length known
