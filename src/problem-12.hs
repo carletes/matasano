@@ -102,6 +102,7 @@ nextByte :: Integer                      -- ^ Block size
          -> Maybe B.ByteString           -- ^ Bytes found in this block
          -> Integer                      -- ^ Dummy parameter
          -> Oracle (Maybe B.ByteString)  -- ^ New block
+nextByte _ Nothing _ _             = return Nothing
 nextByte _ _ Nothing _             = return Nothing
 nextByte n (Just b) (Just known) _ = do
   blockMap <- mkBlockMap n known b
