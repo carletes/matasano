@@ -116,10 +116,10 @@ nextByte n (Just b) (Just known) _ = do
              Nothing -> Just known
 
 -- | Find the next bytes in a block.
-nBlocks :: Integer                      -- ^ Block size
-        -> Maybe B.ByteString           -- ^ Bytes found so far
-        -> Oracle (Maybe B.ByteString)  -- ^ New block
-nBlocks n b = do
+nextBlock :: Integer                      -- ^ Block size
+          -> Maybe B.ByteString           -- ^ Bytes found so far
+          -> Oracle (Maybe B.ByteString)  -- ^ New block
+nextBlock n b = do
   bytes <- foldM (nextByte n b) (Just B.empty) [1 .. n]
   case sequence (b : [bytes]) of
     Nothing -> return Nothing
@@ -148,9 +148,9 @@ solve :: Oracle (Maybe B.ByteString)
 solve = do
   len   <- blockSize
   enc <- oracle B.empty
-  b1 <- nBlocks len (Just B.empty)
+  b1 <- nextBlock len (Just B.empty)
   let count = fromIntegral (B.length enc) `div` len
-  foldM (\b _ -> nBlocks len b) b1 [2 .. count]
+  foldM (\b _ -> nextBlock len b) b1 [2 .. count]
 
 main :: IO ()
 main = do
