@@ -87,12 +87,12 @@ mkBlockMap n known = foldM go Map.empty [0 .. 255] where
       return $ Map.insert (B.take (fromIntegral n) block') w m
 
 -- | Find the next byte in the first block.
-findByte :: Integer                      -- ^ Block size
+nextByte :: Integer                      -- ^ Block size
          -> Maybe B.ByteString           -- ^ Bytes found in this block
          -> Integer                      -- ^ Dummy parameter
          -> Oracle (Maybe B.ByteString)  -- ^ New block
-findByte _ Nothing _      = return Nothing
-findByte n (Just known) _ = do
+nextByte _ Nothing _      = return Nothing
+nextByte n (Just known) _ = do
   blockMap <- mkBlockMap n known
   let block  = B.replicate (fromIntegral (n - (k + 1))) 0
       k      = fromIntegral $ B.length known
@@ -102,10 +102,10 @@ findByte n (Just known) _ = do
              Nothing -> Nothing
 
 -- | Find the first block of the oracle's secret.
-firstBlock :: Integer                      -- ^ Block size
-           -> Oracle (Maybe B.ByteString)  -- ^ The first block
+firstBlock :: Integer                     -- ^ Block size
+          -> Oracle (Maybe B.ByteString)  -- ^ The first block
 firstBlock n = do
-  bytes <- foldM (findByte n) (Just B.empty) [1 .. n]
+  bytes <- foldM (nextByte n) (Just B.empty) [1 .. n]
   case sequence [bytes] of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
@@ -128,13 +128,13 @@ mkBlockMap' n known b = foldM go Map.empty [0 .. 255] where
       return $ Map.insert block' w m
 
 -- | Find the next byte in a block.
-findByte' :: Integer                      -- ^ Block size
+nextByte' :: Integer                      -- ^ Block size
           -> Maybe B.ByteString           -- ^ Bytes found in previous blocks
           -> Maybe B.ByteString           -- ^ Bytes found in this block
           -> Integer                      -- ^ Dummy parameter
           -> Oracle (Maybe B.ByteString)  -- ^ New block
-findByte' _ _ Nothing _             = return Nothing
-findByte' n (Just b) (Just known) _ = do
+nextByte' _ _ Nothing _             = return Nothing
+nextByte' n (Just b) (Just known) _ = do
   blockMap <- mkBlockMap' n known b
   let block = B.concat [b,
                         B.replicate (n' - (k + 1)) 0]
@@ -151,7 +151,7 @@ nBlocks :: Integer                      -- ^ Block size
         -> Maybe B.ByteString           -- ^ Bytes found so far
         -> Oracle (Maybe B.ByteString)  -- ^ New block
 nBlocks n b = do
-  bytes <- foldM (findByte' n b) (Just B.empty) [1 .. n]
+  bytes <- foldM (nextByte' n b) (Just B.empty) [1 .. n]
   case sequence (b : [bytes]) of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
