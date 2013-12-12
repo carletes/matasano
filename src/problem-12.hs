@@ -103,7 +103,6 @@ nextByte :: Integer                      -- ^ Block size
          -> Oracle (Maybe B.ByteString)  -- ^ New block
 nextByte _ Nothing _      = return Nothing
 nextByte n (Just known) _ = do
-  --blockMap <- mkBlockMap n known
   blockMap <- mkBlockMap n known B.empty
   let block  = B.replicate (fromIntegral (n - (k + 1))) 0
       k      = fromIntegral $ B.length known
