@@ -57,7 +57,11 @@ import qualified Data.Map as Map
 
 import qualified Matasano as M
 
-detectECB    :: B.ByteString -> Integer
+type Oracle a = M.Oracle12 a
+
+-- | Detect the ECB block size of a give byte string.
+detectECB :: B.ByteString  -- ^ Input byte string
+          -> Integer       -- ^ Block size
 detectECB bs = case chunkSizes of
                  [] -> 0
                  _  -> maximum chunkSizes
@@ -68,9 +72,12 @@ detectECB bs = case chunkSizes of
 
 type BlockMap = Map.Map B.ByteString Word8
 
-mkBlockMap         :: Integer -> B.ByteString -> M.Oracle12 BlockMap
+-- | Build the block map needed to find the last byte of the first block.
+mkBlockMap :: Integer          -- ^ Block size
+           -> B.ByteString     -- ^ Bytes found in this block
+           -> Oracle BlockMap  -- ^ The block map
 mkBlockMap n known = foldM go Map.empty [0 .. 255] where
-    go     :: BlockMap -> Word8 -> M.Oracle12 BlockMap
+    go     :: BlockMap -> Word8 -> Oracle BlockMap
     go m w = do
       let block = B.concat [B.replicate (fromIntegral (n - (k + 1))) 0,
                             known,
@@ -79,7 +86,11 @@ mkBlockMap n known = foldM go Map.empty [0 .. 255] where
       block' <- M.oracle12 block
       return $ Map.insert (B.take (fromIntegral n) block') w m
 
-findByte                  :: Integer -> Maybe B.ByteString -> Integer -> M.Oracle12 (Maybe B.ByteString)
+-- | Find the next byte in the first block.
+findByte :: Integer                      -- ^ Block size
+         -> Maybe B.ByteString           -- ^ Bytes found in this block
+         -> Integer                      -- ^ Dummy parameter
+         -> Oracle (Maybe B.ByteString)  -- ^ New block
 findByte _ Nothing _      = return Nothing
 findByte n (Just known) _ = do
   blockMap <- mkBlockMap n known
@@ -90,16 +101,22 @@ findByte n (Just known) _ = do
              Just b' -> Just $ B.concat [known, B.singleton b']
              Nothing -> Nothing
 
-firstBlock   :: Integer -> M.Oracle12 (Maybe B.ByteString)
+-- | Find the first block of the oracle's secret.
+firstBlock :: Integer                      -- ^ Block size
+           -> Oracle (Maybe B.ByteString)  -- ^ The first block
 firstBlock n = do
   bytes <- foldM (findByte n) (Just B.empty) [1 .. n]
   case sequence [bytes] of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
 
-mkBlockMap' :: Integer -> B.ByteString -> B.ByteString -> M.Oracle12 BlockMap
+-- | Build the block map needed to find the last byte of a block.
+mkBlockMap' :: Integer          -- ^ Block size
+            -> B.ByteString     -- ^ Bytes found in this block
+            -> B.ByteString     -- ^ Bytes found in previous blocks
+            -> Oracle BlockMap  -- ^ The block map
 mkBlockMap' n known b = foldM go Map.empty [0 .. 255] where
-    go     :: BlockMap -> Word8 -> M.Oracle12 BlockMap
+    go     :: BlockMap -> Word8 -> Oracle BlockMap
     go m w = do
       let block = B.concat [B.drop (k + 1) b,
                             known,
@@ -110,7 +127,12 @@ mkBlockMap' n known b = foldM go Map.empty [0 .. 255] where
       let block' = B.take n' $ B.drop (B.length b - n') enc
       return $ Map.insert block' w m
 
-findByte'                           :: Integer -> Maybe B.ByteString -> Maybe B.ByteString -> Integer -> M.Oracle12 (Maybe B.ByteString)
+-- | Find the next byte in a block.
+findByte' :: Integer                      -- ^ Block size
+          -> Maybe B.ByteString           -- ^ Bytes found in previous blocks
+          -> Maybe B.ByteString           -- ^ Bytes found in this block
+          -> Integer                      -- ^ Dummy parameter
+          -> Oracle (Maybe B.ByteString)  -- ^ New block
 findByte' _ _ Nothing _             = return Nothing
 findByte' n (Just b) (Just known) _ = do
   blockMap <- mkBlockMap' n known b
@@ -124,14 +146,17 @@ findByte' n (Just b) (Just known) _ = do
              Just b' -> Just $ B.concat [known, B.singleton b']
              Nothing -> Just $ known
 
-nBlocks     :: Integer -> Maybe B.ByteString -> M.Oracle12 (Maybe B.ByteString)
+-- | Find the next bytes in a block.
+nBlocks :: Integer                      -- ^ Block size
+        -> Maybe B.ByteString           -- ^ Bytes found so far
+        -> Oracle (Maybe B.ByteString)  -- ^ New block
 nBlocks n b = do
   bytes <- foldM (findByte' n b) (Just B.empty) [1 .. n]
   case sequence (b : [bytes]) of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
 
--- Guess ECB block size of the oracle function.
+-- | Guess ECB block size of the oracle function.
 --
 -- Sometimes @detectECB@ reports a block size of 2 or 3 for some of the first
 -- iterations, so we say here:
@@ -141,16 +166,16 @@ nBlocks n b = do
 -- instead of the obvious:
 --
 --     dropwhile (< 2)
-blockSize :: M.Oracle12 Integer
+blockSize :: Oracle Integer
 blockSize = do
-  let go   :: Int -> M.Oracle12 Integer
+  let go   :: Int -> Oracle Integer
       go n = do
               bs <- M.oracle12 (B.replicate (fromIntegral n) 0)
               return $ detectECB bs
   candidates <- forM [1 ..] go
   return $ head $ dropWhile (< 4) candidates
 
-solve :: M.Oracle12 (Maybe B.ByteString)
+solve :: Oracle (Maybe B.ByteString)
 solve = do
   len   <- blockSize
   enc <- M.oracle12 B.empty
