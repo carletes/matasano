@@ -72,7 +72,11 @@ detectECB bs = case chunkSizes of
 
 type BlockMap = Map.Map B.ByteString Word8
 
--- | Build the block map needed to find the last byte of the first block.
+oracle :: B.ByteString -> Oracle B.ByteString
+oracle = M.oracle12
+
+-- | Build the block map needed to find the next unknown byte of the first
+-- block.
 mkBlockMap :: Integer          -- ^ Block size
            -> B.ByteString     -- ^ Bytes found in this block
            -> Oracle BlockMap  -- ^ The block map
@@ -83,7 +87,7 @@ mkBlockMap n known = foldM go Map.empty [0 .. 255] where
                             known,
                             B.singleton w]
           k     = fromIntegral $ B.length known
-      block' <- M.oracle12 block
+      block' <- oracle block
       return $ Map.insert (B.take (fromIntegral n) block') w m
 
 -- | Find the next byte in the first block.
@@ -96,7 +100,7 @@ nextByte n (Just known) _ = do
   blockMap <- mkBlockMap n known
   let block  = B.replicate (fromIntegral (n - (k + 1))) 0
       k      = fromIntegral $ B.length known
-  block' <- M.oracle12 block
+  block' <- oracle block
   return $ case Map.lookup (B.take (fromIntegral n) block') blockMap of
              Just b' -> Just $ B.concat [known, B.singleton b']
              Nothing -> Nothing
@@ -110,7 +114,7 @@ firstBlock n = do
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
 
--- | Build the block map needed to find the last byte of a block.
+-- | Build the block map needed to find the next unknown byte of a block.
 mkBlockMap' :: Integer          -- ^ Block size
             -> B.ByteString     -- ^ Bytes found in this block
             -> B.ByteString     -- ^ Bytes found in previous blocks
@@ -123,7 +127,7 @@ mkBlockMap' n known b = foldM go Map.empty [0 .. 255] where
                             B.singleton w]
           k     = fromIntegral $ B.length known
           n'    = fromIntegral n
-      enc <- M.oracle12 block
+      enc <- oracle block
       let block' = B.take n' $ B.drop (B.length b - n') enc
       return $ Map.insert block' w m
 
@@ -140,11 +144,11 @@ nextByte' n (Just b) (Just known) _ = do
                         B.replicate (n' - (k + 1)) 0]
       k     = fromIntegral $ B.length known
       n'    = fromIntegral n
-  enc <- M.oracle12 block
+  enc <- oracle block
   let block' = B.take n' $ B.drop (2 * B.length b) enc
   return $ case Map.lookup block' blockMap of
              Just b' -> Just $ B.concat [known, B.singleton b']
-             Nothing -> Just $ known
+             Nothing -> Just known
 
 -- | Find the next bytes in a block.
 nBlocks :: Integer                      -- ^ Block size
@@ -170,7 +174,7 @@ blockSize :: Oracle Integer
 blockSize = do
   let go   :: Int -> Oracle Integer
       go n = do
-              bs <- M.oracle12 (B.replicate (fromIntegral n) 0)
+              bs <- oracle (B.replicate (fromIntegral n) 0)
               return $ detectECB bs
   candidates <- forM [1 ..] go
   return $ head $ dropWhile (< 4) candidates
@@ -178,7 +182,7 @@ blockSize = do
 solve :: Oracle (Maybe B.ByteString)
 solve = do
   len   <- blockSize
-  enc <- M.oracle12 B.empty
+  enc <- oracle B.empty
   b1 <- firstBlock len
   let count = fromIntegral (B.length enc) `div` len
   foldM (\b _ -> nBlocks len b) b1 [2 .. count]
