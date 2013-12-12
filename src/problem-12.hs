@@ -96,38 +96,14 @@ mkBlockMap n known b = foldM go Map.empty [0 .. 255] where
       let block' = B.take n' $ B.drop (B.length b - n') enc
       return $ Map.insert block' w m
 
--- | Find the next byte in the first block.
+-- | Find the next byte in a block.
 nextByte :: Integer                      -- ^ Block size
+         -> Maybe B.ByteString           -- ^ Bytes found in previous blocks
          -> Maybe B.ByteString           -- ^ Bytes found in this block
          -> Integer                      -- ^ Dummy parameter
          -> Oracle (Maybe B.ByteString)  -- ^ New block
-nextByte _ Nothing _      = return Nothing
-nextByte n (Just known) _ = do
-  blockMap <- mkBlockMap n known B.empty
-  let block  = B.replicate (fromIntegral (n - (k + 1))) 0
-      k      = fromIntegral $ B.length known
-  block' <- oracle block
-  return $ case Map.lookup (B.take (fromIntegral n) block') blockMap of
-             Just b' -> Just $ B.concat [known, B.singleton b']
-             Nothing -> Nothing
-
--- | Find the first block of the oracle's secret.
-firstBlock :: Integer                     -- ^ Block size
-          -> Oracle (Maybe B.ByteString)  -- ^ The first block
-firstBlock n = do
-  bytes <- foldM (nextByte n) (Just B.empty) [1 .. n]
-  case sequence [bytes] of
-    Nothing -> return Nothing
-    Just bs -> return $ Just (B.concat bs)
-
--- | Find the next byte in a block.
-nextByte' :: Integer                      -- ^ Block size
-          -> Maybe B.ByteString           -- ^ Bytes found in previous blocks
-          -> Maybe B.ByteString           -- ^ Bytes found in this block
-          -> Integer                      -- ^ Dummy parameter
-          -> Oracle (Maybe B.ByteString)  -- ^ New block
-nextByte' _ _ Nothing _             = return Nothing
-nextByte' n (Just b) (Just known) _ = do
+nextByte _ _ Nothing _             = return Nothing
+nextByte n (Just b) (Just known) _ = do
   blockMap <- mkBlockMap n known b
   let block = B.concat [b,
                         B.replicate (n' - (k + 1)) 0]
@@ -139,12 +115,21 @@ nextByte' n (Just b) (Just known) _ = do
              Just b' -> Just $ B.concat [known, B.singleton b']
              Nothing -> Just known
 
+-- | Find the first block of the oracle's secret.
+firstBlock :: Integer                     -- ^ Block size
+          -> Oracle (Maybe B.ByteString)  -- ^ The first block
+firstBlock n = do
+  bytes <- foldM (nextByte n (Just B.empty)) (Just B.empty) [1 .. n]
+  case sequence [bytes] of
+    Nothing -> return Nothing
+    Just bs -> return $ Just (B.concat bs)
+
 -- | Find the next bytes in a block.
 nBlocks :: Integer                      -- ^ Block size
         -> Maybe B.ByteString           -- ^ Bytes found so far
         -> Oracle (Maybe B.ByteString)  -- ^ New block
 nBlocks n b = do
-  bytes <- foldM (nextByte' n b) (Just B.empty) [1 .. n]
+  bytes <- foldM (nextByte n b) (Just B.empty) [1 .. n]
   case sequence (b : [bytes]) of
     Nothing -> return Nothing
     Just bs -> return $ Just (B.concat bs)
