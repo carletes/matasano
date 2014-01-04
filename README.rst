@@ -1,5 +1,5 @@
-Solving the Matasano Crypto Chanllenges with Haskell
-====================================================
+Solving the Matasano Crypto Challenges with Haskell
+===================================================
 
 I'm using the Matasano Crypto Challenges as an excuse to learn Haskell.
 
