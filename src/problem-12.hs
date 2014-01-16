@@ -156,9 +156,9 @@ stripPKCS7 (Just bs) n = return $ Just (strip bs) where
 
 solve :: Oracle (Maybe B.ByteString)
 solve = do
-  len   <- blockSize
+  len <- blockSize
   enc <- oracle B.empty
-  b1 <- nextBlock len (Just B.empty)
+  b1  <- nextBlock len (Just B.empty)
   let count = fromIntegral (B.length enc) `div` len
   secret <- foldM (\b _ -> nextBlock len b) b1 [2 .. count]
   stripPKCS7 secret len
