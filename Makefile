@@ -6,9 +6,9 @@ check: all
 	cabal test
 
 init:
-	cabal sandbox init
-	cabal install --only-dependencies --enable-tests --jobs
-	cabal configure --enable-tests
+	test -f cabal.sandbox.config || (\
+		cabal sandbox init && \
+		cabal install --only-dependencies --enable-tests --jobs)
 
 clean:
 	-git clean -dfx
