@@ -205,7 +205,7 @@ pkcs7Unpad k bs = do
                    then Left $ "pkcs7Unpad: Input length not multiple of " ++
                         show k
                    else Right k
-        inputLen = if not (len `mod` k' == 0 )
+        inputLen = if len `mod` k' /= 0
                    then Left $ "pkcs7Unpad: Input length not multiple of " ++
                         show k
                    else Right len
