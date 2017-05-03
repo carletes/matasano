@@ -1,5 +1,4 @@
-/.cabal-sandbox/
-/dist/
-/cabal.sandbox.config
+/.stack-work/
+/matasano.cabal
 *~
 .*.swp

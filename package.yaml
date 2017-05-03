@@ -1,0 +1,117 @@
+name: matasano
+version: 0.1.0
+synopsis: A Haskell implementation of the Matasano Crypto Challenges.
+description: A Haskell implementation of the Matasano Crypto Challenges.
+license: BSD3
+author: Carlos Valiente
+maintainer: Carlos Valiente <carlos@pepelabs.net>
+copyright: Copyright (c) 2013, Carlos Valiente
+github: carletes/matasano
+
+ghc-options: -Wall
+source-dirs: src
+
+dependencies:
+  - base
+  - bytestring
+  - base16-bytestring
+  - base64-bytestring
+  - cipher-aes
+  - containers
+  - mtl
+  - random
+
+library:
+  exposed-modules:
+    - Matasano
+    - Matasano.Utils
+
+executables:
+  problem-1:
+    main: problem-1.hs
+    dependencies:
+      - matasano
+
+  problem-2:
+    main: problem-2.hs
+    dependencies:
+      - matasano
+
+  problem-3:
+    main: problem-3.hs
+    dependencies:
+      - matasano
+
+  problem-4:
+    main: problem-4.hs
+    dependencies:
+      - matasano
+
+  problem-5:
+    main: problem-5.hs
+    dependencies:
+      - matasano
+
+  problem-6:
+    main: problem-6.hs
+    dependencies:
+      - matasano
+
+  problem-7:
+    main: problem-7.hs
+    dependencies:
+      - matasano
+
+  problem-8:
+    main: problem-8.hs
+    dependencies:
+      - matasano
+
+  problem-9:
+    main: problem-9.hs
+    dependencies:
+      - matasano
+
+  problem-10:
+    main: problem-10.hs
+    dependencies:
+      - matasano
+
+  problem-11:
+    main: problem-11.hs
+    dependencies:
+      - matasano
+
+  problem-12:
+    main: problem-12.hs
+    dependencies:
+      - matasano
+
+  problem-13:
+    main: problem-13.hs
+    dependencies:
+      - matasano
+
+  problem-15:
+    main: problem-15.hs
+    dependencies:
+      - matasano
+
+tests:
+  test-matasano:
+    source-dirs: tests
+    main: Main.hs
+    dependencies:
+      - QuickCheck
+      - test-framework
+      - test-framework-quickcheck2
+
+extra-source-files:
+  - README.rst
+
+data-files:
+  - data/gist-3132713
+  - data/gist-3132752
+  - data/gist-3132853
+  - data/gist-3132928
+  - data/pg1661.txt
